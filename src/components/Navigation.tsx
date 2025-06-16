@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Home, Calendar, Users, Shield, User, Dna, MessageSquare } from "lucide-react";
+import { Menu, Home, Calendar, Users, User, Dna, MessageSquare, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
 
   const navItems = [
     { name: "Início", path: "/", icon: Home },
@@ -15,12 +17,15 @@ const Navigation = () => {
     { name: "Agenda", path: "/agenda", icon: Calendar },
     { name: "Comunidade", path: "/comunidade", icon: Users },
     { name: "Eventos", path: "/eventos", icon: Calendar },
-    { name: "Segurança", path: "/seguranca", icon: Shield },
     { name: "Contato", path: "/contato", icon: MessageSquare },
-    { name: "Perfil", path: "/perfil", icon: User },
   ];
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+  };
 
   return (
     <nav className="bg-white/95 backdrop-blur-md border-b border-trans-blue/20 sticky top-0 z-50">
@@ -36,7 +41,7 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navItems.slice(0, 7).map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -51,18 +56,33 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* Profile Button */}
+          {/* Profile/Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/perfil">
-              <Button
-                variant={isActive("/perfil") ? "default" : "outline"}
-                size="sm"
-                className="bg-gradient-to-r from-trans-blue to-trans-pink border-0"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Perfil
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/perfil">
+                  <Button
+                    variant={isActive("/perfil") ? "default" : "outline"}
+                    size="sm"
+                    className="bg-gradient-to-r from-trans-blue to-trans-pink border-0"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Perfil
+                  </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button size="sm" className="bg-gradient-to-r from-trans-blue to-trans-pink border-0">
+                  <User className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu */}
@@ -89,6 +109,37 @@ const Navigation = () => {
                     <span className="font-medium">{item.name}</span>
                   </Link>
                 ))}
+                
+                <div className="border-t pt-4">
+                  {isAuthenticated ? (
+                    <>
+                      <Link
+                        to="/perfil"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:text-trans-blue hover:bg-trans-blue/5"
+                      >
+                        <User className="w-5 h-5" />
+                        <span className="font-medium">Perfil</span>
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:text-trans-blue hover:bg-trans-blue/5 w-full text-left"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <span className="font-medium">Sair</span>
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      to="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:text-trans-blue hover:bg-trans-blue/5"
+                    >
+                      <User className="w-5 h-5" />
+                      <span className="font-medium">Entrar</span>
+                    </Link>
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>

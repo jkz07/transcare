@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Plus, Bell, User, Pill, Stethoscope } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon, Clock, Plus, Bell, User, Pill, Stethoscope } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const Agenda = () => {
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
   const mockEvents = [
     {
@@ -55,11 +57,11 @@ const Agenda = () => {
       case 'medicamento':
         return Pill;
       case 'exame':
-        return Calendar;
+        return CalendarIcon;
       case 'terapia':
         return User;
       default:
-        return Calendar;
+        return CalendarIcon;
     }
   };
 
@@ -184,140 +186,126 @@ const Agenda = () => {
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="card-trans">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-trans-blue to-blue-400 rounded-xl flex items-center justify-center">
-                  <Stethoscope className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">3</p>
-                  <p className="text-sm text-gray-600">Consultas este mês</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-trans">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-safe-green to-green-400 rounded-xl flex items-center justify-center">
-                  <Pill className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">98%</p>
-                  <p className="text-sm text-gray-600">Adesão medicamentos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-trans">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-warm-orange to-orange-400 rounded-xl flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">2</p>
-                  <p className="text-sm text-gray-600">Exames pendentes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="card-trans">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-trans-pink to-pink-400 rounded-xl flex items-center justify-center">
-                  <Bell className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">5</p>
-                  <p className="text-sm text-gray-600">Lembretes ativos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Calendar Section */}
+          <div className="lg:col-span-1">
+            <Card className="card-trans">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CalendarIcon className="w-6 h-6" />
+                  <span>Calendário</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md border shadow w-full"
+                />
+              </CardContent>
+            </Card>
 
-        {/* Calendar View */}
-        <Card className="card-trans">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Calendar className="w-6 h-6" />
-              <span>Cronograma de Junho 2025</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {mockEvents.map((event) => {
-                const EventIcon = getEventIcon(event.type);
-                return (
-                  <div key={event.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getEventColor(event.type)}`}>
-                      <EventIcon className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-1">
-                        <h4 className="font-semibold">{event.title}</h4>
-                        <Badge variant="outline" className="capitalize">
-                          {event.type}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-1">{event.description}</p>
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4" />
-                          <span>{event.time}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      Editar
-                    </Button>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-4 mt-6">
+              <Card className="card-trans">
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-trans-blue">3</p>
+                    <p className="text-sm text-gray-600">Consultas</p>
                   </div>
-                );
-              })}
+                </CardContent>
+              </Card>
+              
+              <Card className="card-trans">
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-safe-green">98%</p>
+                    <p className="text-sm text-gray-600">Adesão</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Tips Section */}
-        <Card className="mt-8 card-trans bg-gradient-to-r from-trans-blue/5 to-trans-pink/5">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Bell className="w-6 h-6 text-trans-blue" />
-              <span>Dicas para uma Agenda Eficiente</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold mb-3">Medicamentos:</h4>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• Configure lembretes diários para seus hormônios</li>
-                  <li>• Mantenha um registro de como se sente</li>
-                  <li>• Anote efeitos colaterais para reportar ao médico</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-3">Consultas:</h4>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• Agende com antecedência suas consultas</li>
-                  <li>• Prepare uma lista de dúvidas antes da consulta</li>
-                  <li>• Mantenha seus exames sempre organizados</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Events Section */}
+          <div className="lg:col-span-2">
+            <Card className="card-trans">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CalendarIcon className="w-6 h-6" />
+                  <span>Próximos Eventos</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mockEvents.map((event) => {
+                    const EventIcon = getEventIcon(event.type);
+                    return (
+                      <div key={event.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getEventColor(event.type)}`}>
+                          <EventIcon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-1">
+                            <h4 className="font-semibold">{event.title}</h4>
+                            <Badge variant="outline" className="capitalize">
+                              {event.type}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-1">{event.description}</p>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1">
+                              <CalendarIcon className="w-4 h-4" />
+                              <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Clock className="w-4 h-4" />
+                              <span>{event.time}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm">
+                          Editar
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Tips Section */}
+            <Card className="mt-6 card-trans bg-gradient-to-r from-trans-blue/5 to-trans-pink/5">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Bell className="w-6 h-6 text-trans-blue" />
+                  <span>Dicas para uma Agenda Eficiente</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3">Medicamentos:</h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li>• Configure lembretes diários para seus hormônios</li>
+                      <li>• Mantenha um registro de como se sente</li>
+                      <li>• Anote efeitos colaterais para reportar ao médico</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-3">Consultas:</h4>
+                    <ul className="space-y-2 text-sm text-gray-700">
+                      <li>• Agende com antecedência suas consultas</li>
+                      <li>• Prepare uma lista de dúvidas antes da consulta</li>
+                      <li>• Mantenha seus exames sempre organizados</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

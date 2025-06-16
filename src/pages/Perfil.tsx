@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,16 +10,25 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Edit, Settings, Calendar, Heart, MessageSquare, Shield, Camera } from "lucide-react";
+import { User, Edit, Settings, Calendar, Heart, MessageSquare, Camera } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
 const Perfil = () => {
+  const { isAuthenticated, user } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
   const userStats = {
     postsCount: 23,
     likesReceived: 156,
     commentsCount: 89,
     joinDate: "Janeiro 2025"
   };
+
   const recentActivity = [{
     type: "post",
     title: "Compartilhou uma experiência sobre TH",
@@ -35,7 +45,9 @@ const Perfil = () => {
     date: "5 dias atrás",
     likes: 0
   }];
-  return <div className="min-h-screen py-8">
+
+  return (
+    <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
         <Card className="mb-8 card-trans">
@@ -44,7 +56,9 @@ const Perfil = () => {
               {/* Avatar */}
               <div className="relative">
                 <Avatar className="w-32 h-32">
-                  <AvatarFallback className="text-4xl">MJ</AvatarFallback>
+                  <AvatarFallback className="text-4xl">
+                    {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                  </AvatarFallback>
                 </Avatar>
                 <Button size="sm" className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0" variant="outline">
                   <Camera className="w-4 h-4" />
@@ -55,12 +69,12 @@ const Perfil = () => {
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">Maria João</h1>
-                    <p className="text-gray-600 mb-2">ela/dela • 28 anos • São Paulo, SP</p>
+                    <h1 className="text-3xl font-bold mb-2">{user?.name || 'Usuário'}</h1>
+                    <p className="text-gray-600 mb-2">{user?.pronouns || 'ela/dela'} • {user?.age || 28} anos • {user?.location || 'São Paulo, SP'}</p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                       <Badge className="bg-trans-blue text-white">TH Feminizante</Badge>
                       <Badge variant="outline">2 anos de jornada</Badge>
-                      <Badge variant="outline">Moderadora</Badge>
+                      <Badge variant="outline">Membro</Badge>
                     </div>
                   </div>
                   <Button onClick={() => setIsEditing(!isEditing)} className="btn-trans">
@@ -70,8 +84,7 @@ const Perfil = () => {
                 </div>
 
                 <p className="text-gray-700 mb-6">
-                  Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. 
-                  Amo fotografia, leitura e cuidar das minhas plantas 🌱
+                  {user?.bio || 'Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱'}
                 </p>
 
                 {/* Stats */}
@@ -100,10 +113,9 @@ const Perfil = () => {
 
         {/* Profile Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="profile">Perfil</TabsTrigger>
             <TabsTrigger value="activity">Atividade</TabsTrigger>
-            <TabsTrigger value="agenda">Agenda</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
           </TabsList>
 
@@ -206,30 +218,6 @@ const Perfil = () => {
             </Card>
           </TabsContent>
 
-          {/* Agenda Tab */}
-          <TabsContent value="agenda" className="space-y-6">
-            <Card className="card-trans">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="w-6 h-6" />
-                  <span>Minha Agenda Pessoal</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Acesse sua agenda completa</h3>
-                  <p className="text-gray-600 mb-4">
-                    Gerencie seus compromissos, medicamentos e marcos da sua jornada
-                  </p>
-                  <Button className="btn-trans">
-                    Ir para Agenda
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <Card className="card-trans">
@@ -301,6 +289,8 @@ const Perfil = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Perfil;
