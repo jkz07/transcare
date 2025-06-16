@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Edit, Settings, Calendar, Heart, MessageSquare, Camera } from "lucide-react";
+import { User, Edit, Settings, Calendar, Heart, MessageSquare, Camera, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
