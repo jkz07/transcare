@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,41 +10,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Edit, Settings, Calendar, Heart, MessageSquare, Shield, Camera } from "lucide-react";
-
 const Perfil = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
-
   const userStats = {
     postsCount: 23,
     likesReceived: 156,
     commentsCount: 89,
     joinDate: "Janeiro 2025"
   };
-
-  const recentActivity = [
-    {
-      type: "post",
-      title: "Compartilhou uma experiência sobre TH",
-      date: "2 dias atrás",
-      likes: 12
-    },
-    {
-      type: "comment",
-      title: "Comentou no post 'Primeiros passos'",
-      date: "3 dias atrás",
-      likes: 5
-    },
-    {
-      type: "like",
-      title: "Curtiu 8 posts na comunidade",
-      date: "5 dias atrás",
-      likes: 0
-    }
-  ];
-
-  return (
-    <div className="min-h-screen py-8">
+  const recentActivity = [{
+    type: "post",
+    title: "Compartilhou uma experiência sobre TH",
+    date: "2 dias atrás",
+    likes: 12
+  }, {
+    type: "comment",
+    title: "Comentou no post 'Primeiros passos'",
+    date: "3 dias atrás",
+    likes: 5
+  }, {
+    type: "like",
+    title: "Curtiu 8 posts na comunidade",
+    date: "5 dias atrás",
+    likes: 0
+  }];
+  return <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
         <Card className="mb-8 card-trans">
@@ -56,11 +46,7 @@ const Perfil = () => {
                 <Avatar className="w-32 h-32">
                   <AvatarFallback className="text-4xl">MJ</AvatarFallback>
                 </Avatar>
-                <Button
-                  size="sm"
-                  className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0"
-                  variant="outline"
-                >
+                <Button size="sm" className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0" variant="outline">
                   <Camera className="w-4 h-4" />
                 </Button>
               </div>
@@ -77,10 +63,7 @@ const Perfil = () => {
                       <Badge variant="outline">Moderadora</Badge>
                     </div>
                   </div>
-                  <Button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="btn-trans"
-                  >
+                  <Button onClick={() => setIsEditing(!isEditing)} className="btn-trans">
                     <Edit className="w-4 h-4 mr-2" />
                     {isEditing ? 'Salvar' : 'Editar Perfil'}
                   </Button>
@@ -139,20 +122,7 @@ const Perfil = () => {
                     <Label htmlFor="name">Nome</Label>
                     <Input id="name" defaultValue="Maria João" disabled={!isEditing} />
                   </div>
-                  <div>
-                    <Label htmlFor="pronouns">Pronomes</Label>
-                    <Select disabled={!isEditing}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="ela/dela" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ela">ela/dela</SelectItem>
-                        <SelectItem value="ele">ele/dele</SelectItem>
-                        <SelectItem value="elu">elu/delu</SelectItem>
-                        <SelectItem value="outros">outros</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
                   <div>
                     <Label htmlFor="age">Idade</Label>
                     <Input id="age" type="number" defaultValue="28" disabled={!isEditing} />
@@ -165,12 +135,7 @@ const Perfil = () => {
                 
                 <div>
                   <Label htmlFor="bio">Biografia</Label>
-                  <Textarea 
-                    id="bio" 
-                    defaultValue="Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱"
-                    disabled={!isEditing}
-                    className="min-h-[100px]"
-                  />
+                  <Textarea id="bio" defaultValue="Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱" disabled={!isEditing} className="min-h-[100px]" />
                 </div>
 
                 <div>
@@ -223,28 +188,19 @@ const Perfil = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        activity.type === 'post' ? 'bg-trans-blue' :
-                        activity.type === 'comment' ? 'bg-trans-pink' : 'bg-safe-green'
-                      }`}>
-                        {activity.type === 'post' ? <MessageSquare className="w-5 h-5 text-white" /> :
-                         activity.type === 'comment' ? <MessageSquare className="w-5 h-5 text-white" /> :
-                         <Heart className="w-5 h-5 text-white" />}
+                  {recentActivity.map((activity, index) => <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.type === 'post' ? 'bg-trans-blue' : activity.type === 'comment' ? 'bg-trans-pink' : 'bg-safe-green'}`}>
+                        {activity.type === 'post' ? <MessageSquare className="w-5 h-5 text-white" /> : activity.type === 'comment' ? <MessageSquare className="w-5 h-5 text-white" /> : <Heart className="w-5 h-5 text-white" />}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium">{activity.title}</p>
                         <p className="text-sm text-gray-600">{activity.date}</p>
                       </div>
-                      {activity.likes > 0 && (
-                        <div className="flex items-center space-x-1 text-trans-pink">
+                      {activity.likes > 0 && <div className="flex items-center space-x-1 text-trans-pink">
                           <Heart className="w-4 h-4" />
                           <span className="text-sm">{activity.likes}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        </div>}
+                    </div>)}
                 </div>
               </CardContent>
             </Card>
@@ -345,8 +301,6 @@ const Perfil = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Perfil;
