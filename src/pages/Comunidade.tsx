@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -172,7 +172,6 @@ const Comunidade = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
                         <Avatar>
-                          <AvatarContent>{post.avatar}</AvatarContent>
                           <AvatarFallback>{post.avatar}</AvatarFallback>
                         </Avatar>
                         <div>

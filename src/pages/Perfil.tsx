@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Edit, Settings, Calendar, Heart, MessageSquare, Shield, Camera } from "lucide-react";
 
@@ -54,7 +54,6 @@ const Perfil = () => {
               {/* Avatar */}
               <div className="relative">
                 <Avatar className="w-32 h-32">
-                  <AvatarContent className="text-4xl">MJ</AvatarContent>
                   <AvatarFallback className="text-4xl">MJ</AvatarFallback>
                 </Avatar>
                 <Button
