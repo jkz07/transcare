@@ -20,8 +20,8 @@ const Cadastro = () => {
     age: '',
     location: '',
     bio: '',
-    thType: '',
-    journeyTime: ''
+    th_type: '',
+    journey_time: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -50,19 +50,19 @@ const Cadastro = () => {
       return;
     }
 
-    const success = await register(formData.name, formData.email, formData.password, {
+    const { error: registerError } = await register(formData.name, formData.email, formData.password, {
       pronouns: formData.pronouns,
       age: formData.age ? parseInt(formData.age) : undefined,
       location: formData.location,
       bio: formData.bio,
-      thType: formData.thType,
-      journeyTime: formData.journeyTime
+      th_type: formData.th_type,
+      journey_time: formData.journey_time
     });
     
-    if (success) {
-      navigate('/perfil');
+    if (registerError) {
+      setError(registerError);
     } else {
-      setError('Este email já está cadastrado');
+      navigate('/login');
     }
     setIsLoading(false);
   };
@@ -204,7 +204,7 @@ const Cadastro = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="thType">Tipo de TH</Label>
-                    <Select value={formData.thType} onValueChange={(value) => handleInputChange('thType', value)}>
+                    <Select value={formData.th_type} onValueChange={(value) => handleInputChange('th_type', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -219,7 +219,7 @@ const Cadastro = () => {
 
                   <div>
                     <Label htmlFor="journeyTime">Tempo de jornada</Label>
-                    <Select value={formData.journeyTime} onValueChange={(value) => handleInputChange('journeyTime', value)}>
+                    <Select value={formData.journey_time} onValueChange={(value) => handleInputChange('journey_time', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>

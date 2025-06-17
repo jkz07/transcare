@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,34 +15,62 @@ import { User, Edit, Settings, Calendar, Heart, MessageSquare, Camera, Shield } 
 import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
-  const { isAuthenticated, user, updateProfile } = useAuth();
+  const { isAuthenticated, profile, updateProfile, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    pronouns: user?.pronouns || '',
-    age: user?.age?.toString() || '',
-    location: user?.location || '',
-    bio: user?.bio || '',
-    thType: user?.thType || '',
-    journeyTime: user?.journeyTime || ''
+    name: '',
+    pronouns: '',
+    age: '',
+    location: '',
+    bio: '',
+    th_type: '',
+    journey_time: ''
   });
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        name: profile.name || '',
+        pronouns: profile.pronouns || '',
+        age: profile.age?.toString() || '',
+        location: profile.location || '',
+        bio: profile.bio || '',
+        th_type: profile.th_type || '',
+        journey_time: profile.journey_time || ''
+      });
+    }
+  }, [profile]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-trans-blue"></div>
+          <p className="mt-4 text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  const handleSave = () => {
-    updateProfile({
+  const handleSave = async () => {
+    const { error } = await updateProfile({
       name: formData.name,
       pronouns: formData.pronouns,
       age: formData.age ? parseInt(formData.age) : undefined,
       location: formData.location,
       bio: formData.bio,
-      thType: formData.thType,
-      journeyTime: formData.journeyTime
+      th_type: formData.th_type,
+      journey_time: formData.journey_time
     });
-    setIsEditing(false);
+    
+    if (!error) {
+      setIsEditing(false);
+    }
   };
 
   const userStats = {
@@ -52,22 +80,26 @@ const Perfil = () => {
     joinDate: "Janeiro 2025"
   };
 
-  const recentActivity = [{
-    type: "post",
-    title: "Compartilhou uma experiência sobre TH",
-    date: "2 dias atrás",
-    likes: 12
-  }, {
-    type: "comment",
-    title: "Comentou no post 'Primeiros passos'",
-    date: "3 dias atrás",
-    likes: 5
-  }, {
-    type: "like",
-    title: "Curtiu 8 posts na comunidade",
-    date: "5 dias atrás",
-    likes: 0
-  }];
+  const recentActivity = [
+    {
+      type: "post",
+      title: "Compartilhou uma experiência sobre TH",
+      date: "2 dias atrás",
+      likes: 12
+    },
+    {
+      type: "comment",
+      title: "Comentou no post 'Primeiros passos'",
+      date: "3 dias atrás",
+      likes: 5
+    },
+    {
+      type: "like",
+      title: "Curtiu 8 posts na comunidade",
+      date: "5 dias atrás",
+      likes: 0
+    }
+  ];
 
   const getThTypeLabel = (type: string) => {
     switch (type) {
@@ -102,7 +134,7 @@ const Perfil = () => {
               <div className="relative">
                 <Avatar className="w-32 h-32">
                   <AvatarFallback className="text-4xl">
-                    {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                    {profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <Button size="sm" className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0" variant="outline">
@@ -114,16 +146,16 @@ const Perfil = () => {
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">{user?.name || 'Usuário'}</h1>
+                    <h1 className="text-3xl font-bold mb-2">{profile?.name || 'Usuário'}</h1>
                     <p className="text-gray-600 mb-2">
-                      {user?.pronouns || 'ela/dela'} • {user?.age || 28} anos • {user?.location || 'São Paulo, SP'}
+                      {profile?.pronouns || 'ela/dela'} • {profile?.age || 28} anos • {profile?.location || 'São Paulo, SP'}
                     </p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                       <Badge className="bg-trans-blue text-white">
-                        {getThTypeLabel(user?.thType || 'feminizante')}
+                        {getThTypeLabel(profile?.th_type || 'feminizante')}
                       </Badge>
                       <Badge variant="outline">
-                        {getJourneyTimeLabel(user?.journeyTime || '1-2anos')}
+                        {getJourneyTimeLabel(profile?.journey_time || '1-2anos')}
                       </Badge>
                       <Badge variant="outline">Membro</Badge>
                     </div>
@@ -135,7 +167,7 @@ const Perfil = () => {
                 </div>
 
                 <p className="text-gray-700 mb-6">
-                  {user?.bio || 'Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱'}
+                  {profile?.bio || 'Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱'}
                 </p>
 
                 {/* Stats */}
@@ -249,8 +281,8 @@ const Perfil = () => {
                     <div>
                       <Label htmlFor="th-type">Tipo de TH</Label>
                       <Select 
-                        value={formData.thType} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, thType: value }))}
+                        value={formData.th_type} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, th_type: value }))}
                         disabled={!isEditing}
                       >
                         <SelectTrigger>
@@ -267,8 +299,8 @@ const Perfil = () => {
                     <div>
                       <Label htmlFor="journey-time">Tempo de jornada</Label>
                       <Select 
-                        value={formData.journeyTime} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, journeyTime: value }))}
+                        value={formData.journey_time} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, journey_time: value }))}
                         disabled={!isEditing}
                       >
                         <SelectTrigger>

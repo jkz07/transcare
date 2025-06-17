@@ -22,11 +22,12 @@ const Login = () => {
     setIsLoading(true);
     setError('');
 
-    const success = await login(email, password);
-    if (success) {
-      navigate('/perfil');
+    const { error: loginError } = await login(email, password);
+    
+    if (loginError) {
+      setError(loginError);
     } else {
-      setError('Email ou senha incorretos');
+      navigate('/perfil');
     }
     setIsLoading(false);
   };
