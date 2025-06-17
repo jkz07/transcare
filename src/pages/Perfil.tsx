@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,13 +15,35 @@ import { User, Edit, Settings, Calendar, Heart, MessageSquare, Camera, Shield } 
 import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    pronouns: user?.pronouns || '',
+    age: user?.age?.toString() || '',
+    location: user?.location || '',
+    bio: user?.bio || '',
+    thType: user?.thType || '',
+    journeyTime: user?.journeyTime || ''
+  });
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  const handleSave = () => {
+    updateProfile({
+      name: formData.name,
+      pronouns: formData.pronouns,
+      age: formData.age ? parseInt(formData.age) : undefined,
+      location: formData.location,
+      bio: formData.bio,
+      thType: formData.thType,
+      journeyTime: formData.journeyTime
+    });
+    setIsEditing(false);
+  };
 
   const userStats = {
     postsCount: 23,
@@ -46,6 +69,28 @@ const Perfil = () => {
     likes: 0
   }];
 
+  const getThTypeLabel = (type: string) => {
+    switch (type) {
+      case 'feminizante': return 'TH Feminizante';
+      case 'masculinizante': return 'TH Masculinizante';
+      case 'nao-binaria': return 'TH Não-binária';
+      case 'considerando': return 'Considerando TH';
+      default: return 'TH Feminizante';
+    }
+  };
+
+  const getJourneyTimeLabel = (time: string) => {
+    switch (time) {
+      case 'considerando': return 'Considerando';
+      case '0-6meses': return '0-6 meses';
+      case '6meses-1ano': return '6 meses - 1 ano';
+      case '1-2anos': return '1-2 anos';
+      case '2-5anos': return '2-5 anos';
+      case '5anos+': return '5+ anos';
+      default: return '2 anos de jornada';
+    }
+  };
+
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -70,14 +115,20 @@ const Perfil = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div>
                     <h1 className="text-3xl font-bold mb-2">{user?.name || 'Usuário'}</h1>
-                    <p className="text-gray-600 mb-2">{user?.pronouns || 'ela/dela'} • {user?.age || 28} anos • {user?.location || 'São Paulo, SP'}</p>
+                    <p className="text-gray-600 mb-2">
+                      {user?.pronouns || 'ela/dela'} • {user?.age || 28} anos • {user?.location || 'São Paulo, SP'}
+                    </p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                      <Badge className="bg-trans-blue text-white">TH Feminizante</Badge>
-                      <Badge variant="outline">2 anos de jornada</Badge>
+                      <Badge className="bg-trans-blue text-white">
+                        {getThTypeLabel(user?.thType || 'feminizante')}
+                      </Badge>
+                      <Badge variant="outline">
+                        {getJourneyTimeLabel(user?.journeyTime || '1-2anos')}
+                      </Badge>
                       <Badge variant="outline">Membro</Badge>
                     </div>
                   </div>
-                  <Button onClick={() => setIsEditing(!isEditing)} className="btn-trans">
+                  <Button onClick={isEditing ? handleSave : () => setIsEditing(true)} className="btn-trans">
                     <Edit className="w-4 h-4 mr-2" />
                     {isEditing ? 'Salvar' : 'Editar Perfil'}
                   </Button>
@@ -132,22 +183,64 @@ const Perfil = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="name">Nome</Label>
-                    <Input id="name" defaultValue="Maria João" disabled={!isEditing} />
+                    <Input 
+                      id="name" 
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div>
                     <Label htmlFor="age">Idade</Label>
-                    <Input id="age" type="number" defaultValue="28" disabled={!isEditing} />
+                    <Input 
+                      id="age" 
+                      type="number" 
+                      value={formData.age}
+                      onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                      disabled={!isEditing} 
+                    />
                   </div>
+                  
+                  <div>
+                    <Label htmlFor="pronouns">Pronomes</Label>
+                    <Select 
+                      value={formData.pronouns} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, pronouns: value }))}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ela/dela">ela/dela</SelectItem>
+                        <SelectItem value="ele/dele">ele/dele</SelectItem>
+                        <SelectItem value="elu/delu">elu/delu</SelectItem>
+                        <SelectItem value="todos">todos os pronomes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   <div>
                     <Label htmlFor="location">Localização</Label>
-                    <Input id="location" defaultValue="São Paulo, SP" disabled={!isEditing} />
+                    <Input 
+                      id="location" 
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      disabled={!isEditing} 
+                    />
                   </div>
                 </div>
                 
                 <div>
                   <Label htmlFor="bio">Biografia</Label>
-                  <Textarea id="bio" defaultValue="Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱" disabled={!isEditing} className="min-h-[100px]" />
+                  <Textarea 
+                    id="bio" 
+                    value={formData.bio}
+                    onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                    disabled={!isEditing} 
+                    className="min-h-[100px]" 
+                  />
                 </div>
 
                 <div>
@@ -155,9 +248,13 @@ const Perfil = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     <div>
                       <Label htmlFor="th-type">Tipo de TH</Label>
-                      <Select disabled={!isEditing}>
+                      <Select 
+                        value={formData.thType} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, thType: value }))}
+                        disabled={!isEditing}
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="TH Feminizante" />
+                          <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="feminizante">TH Feminizante</SelectItem>
@@ -169,9 +266,13 @@ const Perfil = () => {
                     </div>
                     <div>
                       <Label htmlFor="journey-time">Tempo de jornada</Label>
-                      <Select disabled={!isEditing}>
+                      <Select 
+                        value={formData.journeyTime} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, journeyTime: value }))}
+                        disabled={!isEditing}
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="2 anos" />
+                          <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="considerando">Considerando</SelectItem>

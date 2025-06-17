@@ -5,38 +5,60 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 
 const Cadastro = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    pronouns: '',
+    age: '',
+    location: '',
+    bio: '',
+    thType: '',
+    journeyTime: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    if (password !== confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       setError('As senhas não coincidem');
       setIsLoading(false);
       return;
     }
 
-    if (password.length < 6) {
+    if (formData.password.length < 6) {
       setError('A senha deve ter pelo menos 6 caracteres');
       setIsLoading(false);
       return;
     }
 
-    const success = await register(name, email, password);
+    const success = await register(formData.name, formData.email, formData.password, {
+      pronouns: formData.pronouns,
+      age: formData.age ? parseInt(formData.age) : undefined,
+      location: formData.location,
+      bio: formData.bio,
+      thType: formData.thType,
+      journeyTime: formData.journeyTime
+    });
+    
     if (success) {
       navigate('/perfil');
     } else {
@@ -47,7 +69,7 @@ const Cadastro = () => {
 
   return (
     <div className="min-h-screen py-8 flex items-center justify-center">
-      <div className="max-w-md w-full mx-auto px-4">
+      <div className="max-w-2xl w-full mx-auto px-4">
         <Card className="card-trans">
           <CardHeader>
             <CardTitle className="text-center text-2xl font-bold gradient-text">
@@ -55,60 +77,163 @@ const Cadastro = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800">Informações Básicas</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Nome *</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      required
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="password">Senha *</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        required
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
+              {/* Informações Pessoais */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800">Informações Pessoais</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="pronouns">Pronomes</Label>
+                    <Select value={formData.pronouns} onValueChange={(value) => handleInputChange('pronouns', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ela/dela">ela/dela</SelectItem>
+                        <SelectItem value="ele/dele">ele/dele</SelectItem>
+                        <SelectItem value="elu/delu">elu/delu</SelectItem>
+                        <SelectItem value="todos">todos os pronomes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="age">Idade</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      value={formData.age}
+                      onChange={(e) => handleInputChange('age', e.target.value)}
+                      min="16"
+                      max="100"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Localização</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      placeholder="ex: São Paulo, SP"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="bio">Biografia</Label>
+                  <Textarea
+                    id="bio"
+                    value={formData.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    placeholder="Conte um pouco sobre você..."
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+
+              {/* Jornada Trans */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800">Jornada Trans (Opcional)</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="thType">Tipo de TH</Label>
+                    <Select value={formData.thType} onValueChange={(value) => handleInputChange('thType', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="feminizante">TH Feminizante</SelectItem>
+                        <SelectItem value="masculinizante">TH Masculinizante</SelectItem>
+                        <SelectItem value="nao-binaria">TH Não-binária</SelectItem>
+                        <SelectItem value="considerando">Considerando TH</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="journeyTime">Tempo de jornada</Label>
+                    <Select value={formData.journeyTime} onValueChange={(value) => handleInputChange('journeyTime', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="considerando">Considerando</SelectItem>
+                        <SelectItem value="0-6meses">0-6 meses</SelectItem>
+                        <SelectItem value="6meses-1ano">6 meses - 1 ano</SelectItem>
+                        <SelectItem value="1-2anos">1-2 anos</SelectItem>
+                        <SelectItem value="2-5anos">2-5 anos</SelectItem>
+                        <SelectItem value="5anos+">5+ anos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
               {error && (
@@ -121,7 +246,7 @@ const Cadastro = () => {
                 disabled={isLoading}
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                {isLoading ? 'Cadastrando...' : 'Cadastrar'}
+                {isLoading ? 'Cadastrando...' : 'Criar Conta'}
               </Button>
             </form>
 

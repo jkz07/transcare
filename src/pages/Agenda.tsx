@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ptBR } from "date-fns/locale";
 
 const Agenda = () => {
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
@@ -50,6 +51,9 @@ const Agenda = () => {
     }
   ];
 
+  // Dias com eventos para marcar no calendário
+  const daysWithEvents = mockEvents.map(event => new Date(event.date));
+
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'consulta':
@@ -78,6 +82,12 @@ const Agenda = () => {
       default:
         return 'bg-gray-100 text-gray-600 border-gray-300';
     }
+  };
+
+  const isDayWithEvent = (date: Date) => {
+    return daysWithEvents.some(eventDate => 
+      eventDate.toDateString() === date.toDateString()
+    );
   };
 
   return (
@@ -186,7 +196,7 @@ const Agenda = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Calendar Section */}
           <div className="lg:col-span-1">
             <Card className="card-trans">
@@ -201,18 +211,35 @@ const Agenda = () => {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
+                  locale={ptBR}
                   className="rounded-md border shadow w-full"
+                  modifiers={{
+                    hasEvent: daysWithEvents
+                  }}
+                  modifiersStyles={{
+                    hasEvent: {
+                      backgroundColor: 'rgb(59, 130, 246)',
+                      color: 'white',
+                      borderRadius: '50%'
+                    }
+                  }}
                 />
+                <div className="mt-4 text-sm text-gray-600">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span>Dias com eventos</span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="grid grid-cols-1 gap-4 mt-6">
               <Card className="card-trans">
                 <CardContent className="p-4">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-trans-blue">3</p>
-                    <p className="text-sm text-gray-600">Consultas</p>
+                    <p className="text-sm text-gray-600">Consultas este mês</p>
                   </div>
                 </CardContent>
               </Card>
@@ -221,7 +248,7 @@ const Agenda = () => {
                 <CardContent className="p-4">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-safe-green">98%</p>
-                    <p className="text-sm text-gray-600">Adesão</p>
+                    <p className="text-sm text-gray-600">Adesão aos medicamentos</p>
                   </div>
                 </CardContent>
               </Card>
@@ -229,7 +256,7 @@ const Agenda = () => {
           </div>
 
           {/* Events Section */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <Card className="card-trans">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
