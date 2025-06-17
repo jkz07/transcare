@@ -44,38 +44,32 @@ export type Database = {
       }
       profiles: {
         Row: {
-          age: number | null
-          bio: string | null
+          birth_date: string | null
           created_at: string | null
           id: string
           journey_time: string | null
           location: string | null
           name: string
-          pronouns: string | null
           th_type: string | null
           updated_at: string | null
         }
         Insert: {
-          age?: number | null
-          bio?: string | null
+          birth_date?: string | null
           created_at?: string | null
           id: string
           journey_time?: string | null
           location?: string | null
           name: string
-          pronouns?: string | null
           th_type?: string | null
           updated_at?: string | null
         }
         Update: {
-          age?: number | null
-          bio?: string | null
+          birth_date?: string | null
           created_at?: string | null
           id?: string
           journey_time?: string | null
           location?: string | null
           name?: string
-          pronouns?: string | null
           th_type?: string | null
           updated_at?: string | null
         }

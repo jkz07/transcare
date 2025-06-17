@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Navigate } from "react-router-dom";
 
 interface AgendaEvent {
   id: string;
@@ -24,7 +24,7 @@ interface AgendaEvent {
 }
 
 const Agenda = () => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<AgendaEvent[]>([]);
@@ -38,10 +38,8 @@ const Agenda = () => {
   });
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchEvents();
-    }
-  }, [isAuthenticated]);
+    fetchEvents();
+  }, []);
 
   const fetchEvents = async () => {
     const { data, error } = await supabase
@@ -76,21 +74,6 @@ const Agenda = () => {
       fetchEvents();
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-trans-blue"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
 
   // Dias com eventos para marcar no calendário
   const daysWithEvents = events.map(event => new Date(event.date));
@@ -178,88 +161,100 @@ const Agenda = () => {
               </Button>
             </div>
             
-            {/* Add Event Dialog */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="btn-trans whitespace-nowrap">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Novo Evento
+            {/* Add Event Dialog - Only show if authenticated */}
+            {isAuthenticated && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="btn-trans whitespace-nowrap">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Evento
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Adicionar Novo Evento</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="title" className="text-right">
+                        Título
+                      </Label>
+                      <Input 
+                        id="title" 
+                        className="col-span-3" 
+                        value={newEvent.title}
+                        onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="type" className="text-right">
+                        Tipo
+                      </Label>
+                      <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="consulta">Consulta</SelectItem>
+                          <SelectItem value="medicamento">Medicamento</SelectItem>
+                          <SelectItem value="exame">Exame</SelectItem>
+                          <SelectItem value="terapia">Terapia</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="date" className="text-right">
+                        Data
+                      </Label>
+                      <Input 
+                        id="date" 
+                        type="date" 
+                        className="col-span-3" 
+                        value={newEvent.date}
+                        onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="time" className="text-right">
+                        Hora
+                      </Label>
+                      <Input 
+                        id="time" 
+                        type="time" 
+                        className="col-span-3" 
+                        value={newEvent.time}
+                        onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="description" className="text-right">
+                        Descrição
+                      </Label>
+                      <Textarea 
+                        id="description" 
+                        className="col-span-3" 
+                        value={newEvent.description}
+                        onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                    <Button className="btn-trans" onClick={handleCreateEvent}>Salvar Evento</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
+            {/* Login prompt for non-authenticated users */}
+            {!isAuthenticated && (
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">Faça login para criar eventos</p>
+                <Button variant="outline" onClick={() => window.location.href = '/login'}>
+                  Entrar
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Adicionar Novo Evento</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="title" className="text-right">
-                      Título
-                    </Label>
-                    <Input 
-                      id="title" 
-                      className="col-span-3" 
-                      value={newEvent.title}
-                      onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type" className="text-right">
-                      Tipo
-                    </Label>
-                    <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Selecione o tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="consulta">Consulta</SelectItem>
-                        <SelectItem value="medicamento">Medicamento</SelectItem>
-                        <SelectItem value="exame">Exame</SelectItem>
-                        <SelectItem value="terapia">Terapia</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">
-                      Data
-                    </Label>
-                    <Input 
-                      id="date" 
-                      type="date" 
-                      className="col-span-3" 
-                      value={newEvent.date}
-                      onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="time" className="text-right">
-                      Hora
-                    </Label>
-                    <Input 
-                      id="time" 
-                      type="time" 
-                      className="col-span-3" 
-                      value={newEvent.time}
-                      onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="description" className="text-right">
-                      Descrição
-                    </Label>
-                    <Textarea 
-                      id="description" 
-                      className="col-span-3" 
-                      value={newEvent.description}
-                      onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                  <Button className="btn-trans" onClick={handleCreateEvent}>Salvar Evento</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+              </div>
+            )}
           </div>
         </div>
 
@@ -363,16 +358,22 @@ const Agenda = () => {
                             </div>
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm" className="flex-shrink-0">
-                          Editar
-                        </Button>
+                        {isAuthenticated && (
+                          <Button variant="ghost" size="sm" className="flex-shrink-0">
+                            Editar
+                          </Button>
+                        )}
                       </div>
                     );
                   }) : (
                     <div className="text-center py-8">
                       <CalendarIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                       <p className="text-gray-500">Nenhum evento cadastrado ainda</p>
-                      <p className="text-sm text-gray-400">Clique em "Novo Evento" para começar</p>
+                      {isAuthenticated ? (
+                        <p className="text-sm text-gray-400">Clique em "Novo Evento" para começar</p>
+                      ) : (
+                        <p className="text-sm text-gray-400">Faça login para criar eventos</p>
+                      )}
                     </div>
                   )}
                 </div>

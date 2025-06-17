@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
@@ -16,10 +15,8 @@ const Cadastro = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    pronouns: '',
-    age: '',
+    birth_date: '',
     location: '',
-    bio: '',
     th_type: '',
     journey_time: ''
   });
@@ -51,10 +48,8 @@ const Cadastro = () => {
     }
 
     const { error: registerError } = await register(formData.name, formData.email, formData.password, {
-      pronouns: formData.pronouns,
-      age: formData.age ? parseInt(formData.age) : undefined,
+      birth_date: formData.birth_date,
       location: formData.location,
-      bio: formData.bio,
       th_type: formData.th_type,
       journey_time: formData.journey_time
     });
@@ -146,31 +141,14 @@ const Cadastro = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800">Informações Pessoais</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="pronouns">Pronomes</Label>
-                    <Select value={formData.pronouns} onValueChange={(value) => handleInputChange('pronouns', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ela/dela">ela/dela</SelectItem>
-                        <SelectItem value="ele/dele">ele/dele</SelectItem>
-                        <SelectItem value="elu/delu">elu/delu</SelectItem>
-                        <SelectItem value="todos">todos os pronomes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="age">Idade</Label>
+                    <Label htmlFor="birth_date">Data de Nascimento</Label>
                     <Input
-                      id="age"
-                      type="number"
-                      value={formData.age}
-                      onChange={(e) => handleInputChange('age', e.target.value)}
-                      min="16"
-                      max="100"
+                      id="birth_date"
+                      type="date"
+                      value={formData.birth_date}
+                      onChange={(e) => handleInputChange('birth_date', e.target.value)}
                     />
                   </div>
 
@@ -183,17 +161,6 @@ const Cadastro = () => {
                       placeholder="ex: São Paulo, SP"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="bio">Biografia</Label>
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
-                    placeholder="Conte um pouco sobre você..."
-                    className="min-h-[80px]"
-                  />
                 </div>
               </div>
 

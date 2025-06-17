@@ -5,13 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Edit, Settings, Calendar, Heart, MessageSquare, Camera, Shield } from "lucide-react";
+import { User, Edit, Settings, MessageSquare, Camera, Shield, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
@@ -20,10 +19,8 @@ const Perfil = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    pronouns: '',
-    age: '',
+    birth_date: '',
     location: '',
-    bio: '',
     th_type: '',
     journey_time: ''
   });
@@ -32,10 +29,8 @@ const Perfil = () => {
     if (profile) {
       setFormData({
         name: profile.name || '',
-        pronouns: profile.pronouns || '',
-        age: profile.age?.toString() || '',
+        birth_date: profile.birth_date || '',
         location: profile.location || '',
-        bio: profile.bio || '',
         th_type: profile.th_type || '',
         journey_time: profile.journey_time || ''
       });
@@ -60,10 +55,8 @@ const Perfil = () => {
   const handleSave = async () => {
     const { error } = await updateProfile({
       name: formData.name,
-      pronouns: formData.pronouns,
-      age: formData.age ? parseInt(formData.age) : undefined,
+      birth_date: formData.birth_date,
       location: formData.location,
-      bio: formData.bio,
       th_type: formData.th_type,
       journey_time: formData.journey_time
     });
@@ -123,6 +116,20 @@ const Perfil = () => {
     }
   };
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const age = profile?.birth_date ? calculateAge(profile.birth_date) : null;
+
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -148,7 +155,7 @@ const Perfil = () => {
                   <div>
                     <h1 className="text-3xl font-bold mb-2">{profile?.name || 'Usuário'}</h1>
                     <p className="text-gray-600 mb-2">
-                      {profile?.pronouns || 'ela/dela'} • {profile?.age || 28} anos • {profile?.location || 'São Paulo, SP'}
+                      {age ? `${age} anos` : ''} {age && profile?.location && '•'} {profile?.location || ''}
                     </p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                       <Badge className="bg-trans-blue text-white">
@@ -165,10 +172,6 @@ const Perfil = () => {
                     {isEditing ? 'Salvar' : 'Editar Perfil'}
                   </Button>
                 </div>
-
-                <p className="text-gray-700 mb-6">
-                  {profile?.bio || 'Oi pessoas! Estou aqui para compartilhar minha jornada e apoiar quem está começando. Amo fotografia, leitura e cuidar das minhas plantas 🌱'}
-                </p>
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -224,33 +227,14 @@ const Perfil = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="age">Idade</Label>
+                    <Label htmlFor="birth_date">Data de Nascimento</Label>
                     <Input 
-                      id="age" 
-                      type="number" 
-                      value={formData.age}
-                      onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                      id="birth_date" 
+                      type="date" 
+                      value={formData.birth_date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, birth_date: e.target.value }))}
                       disabled={!isEditing} 
                     />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="pronouns">Pronomes</Label>
-                    <Select 
-                      value={formData.pronouns} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, pronouns: value }))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ela/dela">ela/dela</SelectItem>
-                        <SelectItem value="ele/dele">ele/dele</SelectItem>
-                        <SelectItem value="elu/delu">elu/delu</SelectItem>
-                        <SelectItem value="todos">todos os pronomes</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                   
                   <div>
@@ -262,17 +246,6 @@ const Perfil = () => {
                       disabled={!isEditing} 
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="bio">Biografia</Label>
-                  <Textarea 
-                    id="bio" 
-                    value={formData.bio}
-                    onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-                    disabled={!isEditing} 
-                    className="min-h-[100px]" 
-                  />
                 </div>
 
                 <div>
