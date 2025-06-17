@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +24,7 @@ interface AgendaEvent {
 }
 
 const Agenda = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const [view, setView] = useState<'day' | 'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<AgendaEvent[]>([]);
@@ -56,7 +55,7 @@ const Agenda = () => {
   };
 
   const handleCreateEvent = async () => {
-    if (!newEvent.title || !newEvent.type || !newEvent.date || !newEvent.time) {
+    if (!newEvent.title || !newEvent.type || !newEvent.date || !newEvent.time || !user) {
       return;
     }
 
@@ -67,7 +66,8 @@ const Agenda = () => {
         type: newEvent.type,
         date: newEvent.date,
         time: newEvent.time,
-        description: newEvent.description
+        description: newEvent.description,
+        user_id: user.id
       }]);
 
     if (!error) {
