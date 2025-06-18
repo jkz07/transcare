@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
-import { Clock, Plus, Stethoscope, Pill, CalendarDays, User, Edit, Trash2 } from "lucide-react";
+import { Clock, Plus, Stethoscope, Pill, CalendarDays, User, Edit, Trash2, Lock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,18 +40,14 @@ const Agenda = () => {
   });
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchEvents();
-    }
-  }, [isAuthenticated]);
+    fetchEvents();
+  }, []);
 
   const fetchEvents = async () => {
-    if (!user) return;
-    
+    // Buscar todos os eventos - agora qualquer pessoa pode ver
     const { data, error } = await supabase
       .from('agenda_events')
       .select('*')
-      .eq('user_id', user.id)
       .order('date', { ascending: true })
       .order('time', { ascending: true });
 
@@ -66,6 +62,11 @@ const Agenda = () => {
     }
 
     if (editingEvent) {
+      // Só permite editar se for o próprio usuário
+      if (editingEvent.user_id !== user.id) {
+        return;
+      }
+
       const { error } = await supabase
         .from('agenda_events')
         .update({
@@ -102,6 +103,14 @@ const Agenda = () => {
   };
 
   const handleDeleteEvent = async (eventId: string) => {
+    if (!user) return;
+    
+    // Verificar se o evento pertence ao usuário
+    const event = events.find(e => e.id === eventId);
+    if (!event || event.user_id !== user.id) {
+      return;
+    }
+
     const { error } = await supabase
       .from('agenda_events')
       .delete()
@@ -113,6 +122,11 @@ const Agenda = () => {
   };
 
   const handleEditEvent = (event: AgendaEvent) => {
+    // Só permite editar se for o próprio usuário
+    if (!user || event.user_id !== user.id) {
+      return;
+    }
+
     setEditingEvent(event);
     setNewEvent({
       title: event.title,
@@ -166,31 +180,9 @@ const Agenda = () => {
 
   const eventDates = events.map(event => new Date(event.date));
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10 py-8">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-12 text-center">
-              <CalendarDays className="w-16 h-16 mx-auto text-gray-400 mb-6" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                Acesso Restrito
-              </h3>
-              <p className="text-gray-500 mb-6">
-                Faça login para acessar sua agenda pessoal
-              </p>
-              <Button 
-                onClick={() => window.location.href = '/login'}
-                className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
-              >
-                Fazer Login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  const canUserEditEvent = (event: AgendaEvent) => {
+    return isAuthenticated && user && event.user_id === user.id;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10 py-8">
@@ -198,10 +190,10 @@ const Agenda = () => {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4 gradient-text">
-            Minha Agenda
+            Agenda da Comunidade
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Organize seus compromissos de saúde e terapia
+            Veja os eventos da comunidade e {isAuthenticated ? 'organize seus compromissos' : 'faça login para criar seus próprios eventos'}
           </p>
         </div>
 
@@ -235,104 +227,119 @@ const Agenda = () => {
               </CardContent>
             </Card>
 
-            {/* Add Event Button */}
+            {/* Add Event Button - Only for authenticated users */}
             <Card className="bg-white/80 backdrop-blur-sm mt-6">
               <CardContent className="p-6">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="w-full bg-gradient-to-r from-trans-blue to-trans-pink text-white"
-                      onClick={() => {
-                        if (selectedDate) {
-                          setNewEvent(prev => ({ 
-                            ...prev, 
-                            date: format(selectedDate, 'yyyy-MM-dd') 
-                          }));
-                        }
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Novo Evento
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-bold gradient-text">
-                        {editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-6 py-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="title">Título do Evento</Label>
-                        <Input 
-                          id="title" 
-                          placeholder="Ex: Consulta com Dr. Silva"
-                          value={newEvent.title}
-                          onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="type">Tipo de Evento</Label>
-                        <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="consulta">🩺 Consulta Médica</SelectItem>
-                            <SelectItem value="medicamento">💊 Medicamento</SelectItem>
-                            <SelectItem value="exame">🔬 Exame</SelectItem>
-                            <SelectItem value="terapia">👤 Terapia</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
+                {isAuthenticated ? (
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                        onClick={() => {
+                          if (selectedDate) {
+                            setNewEvent(prev => ({ 
+                              ...prev, 
+                              date: format(selectedDate, 'yyyy-MM-dd') 
+                            }));
+                          }
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Evento
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-bold gradient-text">
+                          {editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-6 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="date">Data</Label>
+                          <Label htmlFor="title">Título do Evento</Label>
                           <Input 
-                            id="date" 
-                            type="date" 
-                            value={newEvent.date}
-                            onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                            id="title" 
+                            placeholder="Ex: Consulta com Dr. Silva"
+                            value={newEvent.title}
+                            onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
                           />
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="time">Horário</Label>
-                          <Input 
-                            id="time" 
-                            type="time" 
-                            value={newEvent.time}
-                            onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
+                          <Label htmlFor="type">Tipo de Evento</Label>
+                          <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="consulta">🩺 Consulta Médica</SelectItem>
+                              <SelectItem value="medicamento">💊 Medicamento</SelectItem>
+                              <SelectItem value="exame">🔬 Exame</SelectItem>
+                              <SelectItem value="terapia">👤 Terapia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="date">Data</Label>
+                            <Input 
+                              id="date" 
+                              type="date" 
+                              value={newEvent.date}
+                              onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="time">Horário</Label>
+                            <Input 
+                              id="time" 
+                              type="time" 
+                              value={newEvent.time}
+                              onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Descrição (opcional)</Label>
+                          <Textarea 
+                            id="description" 
+                            placeholder="Adicione detalhes sobre o evento..."
+                            value={newEvent.description}
+                            onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
                           />
                         </div>
                       </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="description">Descrição (opcional)</Label>
-                        <Textarea 
-                          id="description" 
-                          placeholder="Adicione detalhes sobre o evento..."
-                          value={newEvent.description}
-                          onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
-                        />
+                      
+                      <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={resetForm}>
+                          Cancelar
+                        </Button>
+                        <Button 
+                          className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                          onClick={handleCreateEvent}
+                        >
+                          {editingEvent ? 'Atualizar' : 'Criar'} Evento
+                        </Button>
                       </div>
-                    </div>
-                    
-                    <div className="flex justify-end gap-3">
-                      <Button variant="outline" onClick={resetForm}>
-                        Cancelar
-                      </Button>
-                      <Button 
-                        className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
-                        onClick={handleCreateEvent}
-                      >
-                        {editingEvent ? 'Atualizar' : 'Criar'} Evento
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <div className="text-center">
+                    <Lock className="w-8 h-8 mx-auto text-gray-400 mb-3" />
+                    <p className="text-sm text-gray-500 mb-4">
+                      Faça login para criar eventos
+                    </p>
+                    <Button 
+                      onClick={() => window.location.href = '/login'}
+                      className="w-full bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                    >
+                      Fazer Login
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -351,6 +358,8 @@ const Agenda = () => {
                   <div className="space-y-4">
                     {selectedDateEvents.map((event) => {
                       const EventIcon = getEventIcon(event.type);
+                      const canEdit = canUserEditEvent(event);
+                      
                       return (
                         <Card key={event.id} className={`${getEventColor(event.type)} border-l-4`}>
                           <CardContent className="p-4">
@@ -381,23 +390,25 @@ const Agenda = () => {
                                 </div>
                               </div>
                               
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditEvent(event)}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteEvent(event.id)}
-                                  className="text-red-600 hover:text-red-800"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
+                              {canEdit && (
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleEditEvent(event)}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteEvent(event.id)}
+                                    className="text-red-600 hover:text-red-800"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
