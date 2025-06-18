@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,7 +99,7 @@ const Perfil = () => {
       case 'masculinizante': return 'TH Masculinizante';
       case 'nao-binaria': return 'TH Não-binária';
       case 'considerando': return 'Considerando TH';
-      default: return 'TH Feminizante';
+      default: return 'Não selecionado';
     }
   };
 
@@ -112,7 +111,7 @@ const Perfil = () => {
       case '1-2anos': return '1-2 anos';
       case '2-5anos': return '2-5 anos';
       case '5anos+': return '5+ anos';
-      default: return '2 anos de jornada';
+      default: return 'Não selecionado';
     }
   };
 

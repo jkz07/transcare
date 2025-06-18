@@ -21,11 +21,11 @@ interface AgendaEvent {
   date: string;
   time: string;
   description?: string;
+  user_id: string;
 }
 
 const Agenda = () => {
   const { isAuthenticated, user } = useAuth();
-  const [view, setView] = useState<'day' | 'week' | 'month'>('week');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -75,9 +75,6 @@ const Agenda = () => {
     }
   };
 
-  // Dias com eventos para marcar no calendário
-  const daysWithEvents = events.map(event => new Date(event.date));
-
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'consulta':
@@ -118,6 +115,15 @@ const Agenda = () => {
     }
   };
 
+  // Eventos próximos (próximos 7 dias)
+  const upcomingEvents = events.filter(event => {
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    return eventDate >= today && eventDate <= nextWeek;
+  });
+
   return (
     <div className="min-h-screen py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -125,42 +131,14 @@ const Agenda = () => {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
           <div className="animate-fade-in">
             <h1 className="text-3xl lg:text-4xl font-bold mb-2">
-              Minha <span className="gradient-text">Agenda</span>
+              <span className="gradient-text">Agenda</span> da Comunidade
             </h1>
             <p className="text-gray-600 text-sm lg:text-base">
-              Organize sua jornada de terapia hormonal com lembretes personalizados
+              Veja eventos da comunidade e organize sua jornada com lembretes personalizados
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-            {/* View Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <Button
-                variant={view === 'day' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('day')}
-                className="px-3 text-sm"
-              >
-                Dia
-              </Button>
-              <Button
-                variant={view === 'week' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('week')}
-                className="px-3 text-sm"
-              >
-                Semana
-              </Button>
-              <Button
-                variant={view === 'month' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setView('month')}
-                className="px-3 text-sm"
-              >
-                Mês
-              </Button>
-            </div>
-            
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">            
             {/* Add Event Dialog - Only show if authenticated */}
             {isAuthenticated && (
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -275,23 +253,7 @@ const Agenda = () => {
                   onSelect={setSelectedDate}
                   locale={ptBR}
                   className="rounded-md border shadow w-full"
-                  modifiers={{
-                    hasEvent: daysWithEvents
-                  }}
-                  modifiersStyles={{
-                    hasEvent: {
-                      backgroundColor: 'rgb(59, 130, 246)',
-                      color: 'white',
-                      borderRadius: '50%'
-                    }
-                  }}
                 />
-                <div className="mt-4 text-sm text-gray-600">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span>Dias com eventos</span>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
@@ -303,7 +265,7 @@ const Agenda = () => {
                     <p className="text-2xl font-bold text-trans-blue">
                       {events.filter(e => e.type === 'consulta').length}
                     </p>
-                    <p className="text-sm text-gray-600">Consultas este mês</p>
+                    <p className="text-sm text-gray-600">Consultas cadastradas</p>
                   </div>
                 </CardContent>
               </Card>
@@ -311,8 +273,8 @@ const Agenda = () => {
               <Card className="card-trans">
                 <CardContent className="p-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-safe-green">98%</p>
-                    <p className="text-sm text-gray-600">Adesão aos medicamentos</p>
+                    <p className="text-2xl font-bold text-safe-green">{upcomingEvents.length}</p>
+                    <p className="text-sm text-gray-600">Próximos eventos</p>
                   </div>
                 </CardContent>
               </Card>
@@ -325,7 +287,7 @@ const Agenda = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <CalendarIcon className="w-6 h-6" />
-                  <span>Próximos Eventos</span>
+                  <span>Todos os Eventos</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -358,11 +320,6 @@ const Agenda = () => {
                             </div>
                           </div>
                         </div>
-                        {isAuthenticated && (
-                          <Button variant="ghost" size="sm" className="flex-shrink-0">
-                            Editar
-                          </Button>
-                        )}
                       </div>
                     );
                   }) : (
