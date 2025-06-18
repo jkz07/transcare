@@ -3,14 +3,12 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Clock, Plus, Bell, User, Pill, Stethoscope } from "lucide-react";
+import { Calendar, Clock, Plus, MapPin, User, Pill, Stethoscope, CalendarDays } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,7 +24,6 @@ interface AgendaEvent {
 
 const Agenda = () => {
   const { isAuthenticated, user } = useAuth();
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<AgendaEvent[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({
@@ -45,7 +42,8 @@ const Agenda = () => {
     const { data, error } = await supabase
       .from('agenda_events')
       .select('*')
-      .order('date', { ascending: true });
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
 
     if (data && !error) {
       setEvents(data);
@@ -77,31 +75,21 @@ const Agenda = () => {
 
   const getEventIcon = (type: string) => {
     switch (type) {
-      case 'consulta':
-        return Stethoscope;
-      case 'medicamento':
-        return Pill;
-      case 'exame':
-        return CalendarIcon;
-      case 'terapia':
-        return User;
-      default:
-        return CalendarIcon;
+      case 'consulta': return Stethoscope;
+      case 'medicamento': return Pill;
+      case 'exame': return CalendarDays;
+      case 'terapia': return User;
+      default: return Calendar;
     }
   };
 
   const getEventColor = (type: string) => {
     switch (type) {
-      case 'consulta':
-        return 'bg-trans-blue/10 text-trans-blue border-trans-blue';
-      case 'medicamento':
-        return 'bg-safe-green/10 text-safe-green border-safe-green';
-      case 'exame':
-        return 'bg-warm-orange/10 text-warm-orange border-warm-orange';
-      case 'terapia':
-        return 'bg-trans-pink/10 text-trans-pink border-trans-pink';
-      default:
-        return 'bg-gray-100 text-gray-600 border-gray-300';
+      case 'consulta': return 'border-l-trans-blue bg-trans-blue/5';
+      case 'medicamento': return 'border-l-safe-green bg-safe-green/5';
+      case 'exame': return 'border-l-warm-orange bg-warm-orange/5';
+      case 'terapia': return 'border-l-trans-pink bg-trans-pink/5';
+      default: return 'border-l-gray-400 bg-gray-50';
     }
   };
 
@@ -115,258 +103,262 @@ const Agenda = () => {
     }
   };
 
-  // Eventos próximos (próximos 7 dias)
-  const upcomingEvents = events.filter(event => {
-    const eventDate = new Date(event.date);
-    const today = new Date();
-    const nextWeek = new Date();
-    nextWeek.setDate(today.getDate() + 7);
-    return eventDate >= today && eventDate <= nextWeek;
-  });
+  const groupEventsByDate = (events: AgendaEvent[]) => {
+    const grouped: { [key: string]: AgendaEvent[] } = {};
+    events.forEach(event => {
+      const date = event.date;
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(event);
+    });
+    return grouped;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const groupedEvents = groupEventsByDate(events);
 
   return (
-    <div className="min-h-screen py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
-          <div className="animate-fade-in">
-            <h1 className="text-3xl lg:text-4xl font-bold mb-2">
-              <span className="gradient-text">Agenda</span> da Comunidade
-            </h1>
-            <p className="text-gray-600 text-sm lg:text-base">
-              Veja eventos da comunidade e organize sua jornada com lembretes personalizados
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">            
-            {/* Add Event Dialog - Only show if authenticated */}
-            {isAuthenticated && (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="btn-trans whitespace-nowrap">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Novo Evento
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Adicionar Novo Evento</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="title" className="text-right">
-                        Título
-                      </Label>
-                      <Input 
-                        id="title" 
-                        className="col-span-3" 
-                        value={newEvent.title}
-                        onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="type" className="text-right">
-                        Tipo
-                      </Label>
-                      <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
-                        <SelectTrigger className="col-span-3">
-                          <SelectValue placeholder="Selecione o tipo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="consulta">Consulta</SelectItem>
-                          <SelectItem value="medicamento">Medicamento</SelectItem>
-                          <SelectItem value="exame">Exame</SelectItem>
-                          <SelectItem value="terapia">Terapia</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="date" className="text-right">
-                        Data
-                      </Label>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4 gradient-text">
+            Agenda da Comunidade
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Acompanhe eventos importantes da comunidade e organize sua jornada
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-trans-blue/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Stethoscope className="w-6 h-6 text-trans-blue" />
+              </div>
+              <p className="text-2xl font-bold text-trans-blue">
+                {events.filter(e => e.type === 'consulta').length}
+              </p>
+              <p className="text-sm text-gray-600">Consultas</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-safe-green/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Pill className="w-6 h-6 text-safe-green" />
+              </div>
+              <p className="text-2xl font-bold text-safe-green">
+                {events.filter(e => e.type === 'medicamento').length}
+              </p>
+              <p className="text-sm text-gray-600">Medicamentos</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-warm-orange/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <CalendarDays className="w-6 h-6 text-warm-orange" />
+              </div>
+              <p className="text-2xl font-bold text-warm-orange">
+                {events.filter(e => e.type === 'exame').length}
+              </p>
+              <p className="text-sm text-gray-600">Exames</p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-trans-pink/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <User className="w-6 h-6 text-trans-pink" />
+              </div>
+              <p className="text-2xl font-bold text-trans-pink">
+                {events.filter(e => e.type === 'terapia').length}
+              </p>
+              <p className="text-sm text-gray-600">Terapias</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Add Event Button */}
+        <div className="flex justify-center mb-8">
+          {isAuthenticated ? (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg" className="bg-gradient-to-r from-trans-blue to-trans-pink text-white hover:shadow-lg transition-all">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Criar Novo Evento
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-bold gradient-text">Criar Novo Evento</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-6 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Título do Evento</Label>
+                    <Input 
+                      id="title" 
+                      placeholder="Ex: Consulta com Dr. Silva"
+                      value={newEvent.title}
+                      onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Tipo de Evento</Label>
+                    <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consulta">🩺 Consulta Médica</SelectItem>
+                        <SelectItem value="medicamento">💊 Medicamento</SelectItem>
+                        <SelectItem value="exame">🔬 Exame</SelectItem>
+                        <SelectItem value="terapia">👤 Terapia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="date">Data</Label>
                       <Input 
                         id="date" 
                         type="date" 
-                        className="col-span-3" 
                         value={newEvent.date}
                         onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="time" className="text-right">
-                        Hora
-                      </Label>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="time">Horário</Label>
                       <Input 
                         id="time" 
                         type="time" 
-                        className="col-span-3" 
                         value={newEvent.time}
                         onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="description" className="text-right">
-                        Descrição
-                      </Label>
-                      <Textarea 
-                        id="description" 
-                        className="col-span-3" 
-                        value={newEvent.description}
-                        onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
-                      />
-                    </div>
                   </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                    <Button className="btn-trans" onClick={handleCreateEvent}>Salvar Evento</Button>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descrição (opcional)</Label>
+                    <Textarea 
+                      id="description" 
+                      placeholder="Adicione detalhes sobre o evento..."
+                      value={newEvent.description}
+                      onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                    />
                   </div>
-                </DialogContent>
-              </Dialog>
-            )}
-            
-            {/* Login prompt for non-authenticated users */}
-            {!isAuthenticated && (
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-2">Faça login para criar eventos</p>
-                <Button variant="outline" onClick={() => window.location.href = '/login'}>
-                  Entrar
-                </Button>
-              </div>
-            )}
-          </div>
+                </div>
+                
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button 
+                    className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                    onClick={handleCreateEvent}
+                  >
+                    Criar Evento
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-600 mb-4">Faça login para criar eventos</p>
+              <Button variant="outline" onClick={() => window.location.href = '/login'}>
+                Entrar
+              </Button>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Calendar Section */}
-          <div className="xl:col-span-1">
-            <Card className="card-trans">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center space-x-2 text-lg">
-                  <CalendarIcon className="w-5 h-5" />
-                  <span>Calendário</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  locale={ptBR}
-                  className="rounded-md border shadow w-full"
-                />
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 gap-4 mt-6">
-              <Card className="card-trans">
-                <CardContent className="p-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-trans-blue">
-                      {events.filter(e => e.type === 'consulta').length}
-                    </p>
-                    <p className="text-sm text-gray-600">Consultas cadastradas</p>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Events Timeline */}
+        <div className="space-y-8">
+          {Object.keys(groupedEvents).length > 0 ? Object.entries(groupedEvents).map(([date, dayEvents]) => (
+            <div key={date} className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-2 h-2 bg-gradient-to-r from-trans-blue to-trans-pink rounded-full"></div>
+                <h3 className="text-xl font-semibold text-gray-800 capitalize">
+                  {formatDate(date)}
+                </h3>
+              </div>
               
-              <Card className="card-trans">
-                <CardContent className="p-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-safe-green">{upcomingEvents.length}</p>
-                    <p className="text-sm text-gray-600">Próximos eventos</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Events Section */}
-          <div className="xl:col-span-3">
-            <Card className="card-trans">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <CalendarIcon className="w-6 h-6" />
-                  <span>Todos os Eventos</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {events.length > 0 ? events.map((event) => {
-                    const EventIcon = getEventIcon(event.type);
-                    return (
-                      <div key={event.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getEventColor(event.type)}`}>
-                          <EventIcon className="w-6 h-6" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-3 mb-1">
-                            <h4 className="font-semibold truncate">{event.title}</h4>
-                            <Badge variant="outline" className="capitalize flex-shrink-0">
-                              {getTypeLabel(event.type)}
-                            </Badge>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {dayEvents.map((event) => {
+                  const EventIcon = getEventIcon(event.type);
+                  return (
+                    <Card key={event.id} className={`${getEventColor(event.type)} border-l-4 bg-white/80 backdrop-blur-sm hover:shadow-lg transition-all duration-300`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                            <EventIcon className="w-5 h-5 text-gray-600" />
                           </div>
-                          {event.description && (
-                            <p className="text-sm text-gray-600 mb-1 truncate">{event.description}</p>
-                          )}
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <CalendarIcon className="w-4 h-4" />
-                              <span>{new Date(event.date).toLocaleDateString('pt-BR')}</span>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-gray-900 truncate">{event.title}</h4>
+                              <Badge variant="secondary" className="capitalize text-xs">
+                                {getTypeLabel(event.type)}
+                              </Badge>
                             </div>
-                            <div className="flex items-center space-x-1">
+                            
+                            <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
                               <Clock className="w-4 h-4" />
                               <span>{event.time}</span>
                             </div>
+                            
+                            {event.description && (
+                              <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                                {event.description}
+                              </p>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  }) : (
-                    <div className="text-center py-8">
-                      <CalendarIcon className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-500">Nenhum evento cadastrado ainda</p>
-                      {isAuthenticated ? (
-                        <p className="text-sm text-gray-400">Clique em "Novo Evento" para começar</p>
-                      ) : (
-                        <p className="text-sm text-gray-400">Faça login para criar eventos</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )) : (
+            <Card className="bg-white/80 backdrop-blur-sm">
+              <CardContent className="p-12 text-center">
+                <Calendar className="w-16 h-16 mx-auto text-gray-400 mb-6" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                  Nenhum evento cadastrado
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  {isAuthenticated 
+                    ? "Comece criando seu primeiro evento na agenda" 
+                    : "Faça login para ver e criar eventos"}
+                </p>
+                {isAuthenticated && (
+                  <Button 
+                    onClick={() => setIsDialogOpen(true)}
+                    className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Criar Primeiro Evento
+                  </Button>
+                )}
               </CardContent>
             </Card>
-
-            {/* Tips Section */}
-            <Card className="mt-6 card-trans bg-gradient-to-r from-trans-blue/5 to-trans-pink/5">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Bell className="w-6 h-6 text-trans-blue" />
-                  <span>Dicas para uma Agenda Eficiente</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-3">Medicamentos:</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li>• Configure lembretes diários para seus hormônios</li>
-                      <li>• Mantenha um registro de como se sente</li>
-                      <li>• Anote efeitos colaterais para reportar ao médico</li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-3">Consultas:</h4>
-                    <ul className="space-y-2 text-sm text-gray-700">
-                      <li>• Agende com antecedência suas consultas</li>
-                      <li>• Prepare uma lista de dúvidas antes da consulta</li>
-                      <li>• Mantenha seus exames sempre organizados</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          )}
         </div>
       </div>
     </div>
