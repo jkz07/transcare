@@ -9,7 +9,7 @@ const Credits = () => {
       title: "GitHub",
       description: "Acesse o código fonte do projeto",
       icon: Github,
-      url: "https://github.com",
+      url: "https://github.com/seuusuario/seurepositorio", // Altere para seu repositório
       color: "bg-gray-900 hover:bg-gray-800 text-white",
       iconColor: "text-white"
     },
@@ -17,7 +17,7 @@ const Credits = () => {
       title: "Documentação",
       description: "Consulte a documentação completa",
       icon: FileText,
-      url: "https://docs.example.com",
+      url: "https://seusite.com/docs", // Altere para sua documentação
       color: "bg-blue-600 hover:bg-blue-700 text-white",
       iconColor: "text-white"
     },
@@ -25,7 +25,7 @@ const Credits = () => {
       title: "Site Oficial",
       description: "Visite nosso site principal",
       icon: Globe,
-      url: "https://example.com",
+      url: "https://seusite.com", // Altere para seu site
       color: "bg-green-600 hover:bg-green-700 text-white",
       iconColor: "text-white"
     },
@@ -33,7 +33,7 @@ const Credits = () => {
       title: "Formulário",
       description: "Preencha nosso formulário de feedback",
       icon: ClipboardList,
-      url: "https://forms.example.com",
+      url: "https://forms.google.com/seuformulario", // Altere para seu formulário
       color: "bg-purple-600 hover:bg-purple-700 text-white",
       iconColor: "text-white"
     }

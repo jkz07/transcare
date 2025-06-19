@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface AgendaEvent {
@@ -174,11 +174,20 @@ const Agenda = () => {
     }
   };
 
-  const selectedDateEvents = events.filter(event => 
-    selectedDate && event.date === format(selectedDate, 'yyyy-MM-dd')
-  );
+  // Corrigir o filtro de eventos para comparar datas corretamente
+  const selectedDateEvents = events.filter(event => {
+    if (!selectedDate) return false;
+    const eventDate = new Date(event.date + 'T00:00:00');
+    const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    return eventDateOnly.getTime() === selectedDateOnly.getTime();
+  });
 
-  const eventDates = events.map(event => new Date(event.date));
+  // Corrigir as datas para o calendário
+  const eventDates = events.map(event => {
+    const eventDate = new Date(event.date + 'T00:00:00');
+    return new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+  });
 
   const canUserEditEvent = (event: AgendaEvent) => {
     return isAuthenticated && user && event.user_id === user.id;
@@ -237,9 +246,15 @@ const Agenda = () => {
                         className="w-full bg-gradient-to-r from-trans-blue to-trans-pink text-white"
                         onClick={() => {
                           if (selectedDate) {
+                            // Corrigir a formatação da data para evitar problemas de fuso horário
+                            const year = selectedDate.getFullYear();
+                            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(selectedDate.getDate()).padStart(2, '0');
+                            const formattedDate = `${year}-${month}-${day}`;
+                            
                             setNewEvent(prev => ({ 
                               ...prev, 
-                              date: format(selectedDate, 'yyyy-MM-dd') 
+                              date: formattedDate
                             }));
                           }
                         }}
