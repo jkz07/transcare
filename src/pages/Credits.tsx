@@ -25,7 +25,7 @@ const Credits = () => {
       title: "Site Oficial",
       description: "Visite nosso site principal",
       icon: Globe,
-      url: "https://transcare-journey-hub.lovable.app/",
+      url: "https://transcare-journey-hub.lovable.app",
       color: "bg-green-600 hover:bg-green-700 text-white",
       iconColor: "text-white",
       external: true
@@ -68,7 +68,7 @@ const Credits = () => {
             return (
               <Card 
                 key={index} 
-                className="card-trans cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl" 
+                className="card-trans cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col" 
                 onClick={() => handleCardClick(link.url, link.external)}
               >
                 <CardHeader className="text-center pb-4">
@@ -79,7 +79,7 @@ const Credits = () => {
                     {link.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-center px-4 pb-6">
+                <CardContent className="text-center px-4 pb-6 flex-1 flex flex-col justify-between">
                   <p className="text-gray-600 mb-6">
                     {link.description}
                   </p>
