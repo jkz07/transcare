@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -232,7 +233,7 @@ const Agenda = () => {
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     locale={ptBR}
-                    className="rounded-md border w-full"
+                    className="rounded-md border w-full border-l-0"
                     modifiers={{
                       hasEvent: eventDates
                     }}
