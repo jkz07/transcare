@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,11 +39,18 @@ const Agenda = () => {
   });
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    if (isAuthenticated) {
+      fetchEvents();
+    }
+  }, [isAuthenticated]);
 
   const fetchEvents = async () => {
-    // Buscar todos os eventos - agora qualquer pessoa pode ver
+    // Só buscar eventos se o usuário estiver logado
+    if (!isAuthenticated) {
+      setEvents([]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from('agenda_events')
       .select('*')
@@ -174,20 +180,20 @@ const Agenda = () => {
     }
   };
 
-  // Corrigir o filtro de eventos para comparar datas corretamente
-  const selectedDateEvents = events.filter(event => {
+  // Filtrar eventos apenas se estiver logado
+  const selectedDateEvents = isAuthenticated ? events.filter(event => {
     if (!selectedDate) return false;
     const eventDate = new Date(event.date + 'T00:00:00');
     const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
     return eventDateOnly.getTime() === selectedDateOnly.getTime();
-  });
+  }) : [];
 
-  // Corrigir as datas para o calendário
-  const eventDates = events.map(event => {
+  // Datas com eventos apenas se estiver logado
+  const eventDates = isAuthenticated ? events.map(event => {
     const eventDate = new Date(event.date + 'T00:00:00');
     return new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
-  });
+  }) : [];
 
   const canUserEditEvent = (event: AgendaEvent) => {
     return isAuthenticated && user && event.user_id === user.id;
@@ -199,10 +205,13 @@ const Agenda = () => {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4 gradient-text">
-            Agenda da Comunidade
+            {isAuthenticated ? 'Minha Agenda' : 'Agenda Pessoal'}
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Veja os eventos da comunidade e {isAuthenticated ? 'organize seus compromissos' : 'faça login para criar seus próprios eventos'}
+            {isAuthenticated 
+              ? 'Organize seus compromissos médicos e eventos importantes' 
+              : 'Faça login para acessar e organizar sua agenda pessoal'
+            }
           </p>
         </div>
 
@@ -216,23 +225,25 @@ const Agenda = () => {
                   Calendário
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  locale={ptBR}
-                  className="rounded-md border"
-                  modifiers={{
-                    hasEvent: eventDates
-                  }}
-                  modifiersStyles={{
-                    hasEvent: {
-                      backgroundColor: 'rgb(59 130 246 / 0.2)',
-                      color: 'rgb(29 78 216)'
-                    }
-                  }}
-                />
+              <CardContent className="flex justify-center">
+                <div className="w-full max-w-sm">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    locale={ptBR}
+                    className="rounded-md border w-full"
+                    modifiers={{
+                      hasEvent: eventDates
+                    }}
+                    modifiersStyles={{
+                      hasEvent: {
+                        backgroundColor: 'rgb(59 130 246 / 0.2)',
+                        color: 'rgb(29 78 216)'
+                      }
+                    }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
@@ -365,11 +376,21 @@ const Agenda = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
-                  Eventos - {selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}
+                  {isAuthenticated 
+                    ? `Eventos - ${selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}`
+                    : 'Faça login para ver seus eventos'
+                  }
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {selectedDateEvents.length > 0 ? (
+                {!isAuthenticated ? (
+                  <div className="text-center py-8">
+                    <Lock className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">
+                      Você precisa estar logado para ver seus eventos
+                    </p>
+                  </div>
+                ) : selectedDateEvents.length > 0 ? (
                   <div className="space-y-4">
                     {selectedDateEvents.map((event) => {
                       const EventIcon = getEventIcon(event.type);
@@ -441,56 +462,58 @@ const Agenda = () => {
               </CardContent>
             </Card>
 
-            {/* Summary Statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <Card className="bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Stethoscope className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <p className="text-lg font-bold text-blue-600">
-                    {events.filter(e => e.type === 'consulta').length}
-                  </p>
-                  <p className="text-xs text-gray-600">Consultas</p>
-                </CardContent>
-              </Card>
+            {/* Summary Statistics - Only show if authenticated */}
+            {isAuthenticated && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <Stethoscope className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-lg font-bold text-blue-600">
+                      {events.filter(e => e.type === 'consulta').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Consultas</p>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <Pill className="w-4 h-4 text-green-600" />
-                  </div>
-                  <p className="text-lg font-bold text-green-600">
-                    {events.filter(e => e.type === 'medicamento').length}
-                  </p>
-                  <p className="text-xs text-gray-600">Medicamentos</p>
-                </CardContent>
-              </Card>
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <Pill className="w-4 h-4 text-green-600" />
+                    </div>
+                    <p className="text-lg font-bold text-green-600">
+                      {events.filter(e => e.type === 'medicamento').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Medicamentos</p>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <CalendarDays className="w-4 h-4 text-orange-600" />
-                  </div>
-                  <p className="text-lg font-bold text-orange-600">
-                    {events.filter(e => e.type === 'exame').length}
-                  </p>
-                  <p className="text-xs text-gray-600">Exames</p>
-                </CardContent>
-              </Card>
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <CalendarDays className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <p className="text-lg font-bold text-orange-600">
+                      {events.filter(e => e.type === 'exame').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Exames</p>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-4 text-center">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <User className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <p className="text-lg font-bold text-purple-600">
-                    {events.filter(e => e.type === 'terapia').length}
-                  </p>
-                  <p className="text-xs text-gray-600">Terapias</p>
-                </CardContent>
-              </Card>
-            </div>
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <User className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <p className="text-lg font-bold text-purple-600">
+                      {events.filter(e => e.type === 'terapia').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Terapias</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </div>

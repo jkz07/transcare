@@ -27,7 +27,8 @@ const Credits = () => {
       icon: Globe,
       url: "https://transcare-journey-hub.lovable.app/",
       color: "bg-green-600 hover:bg-green-700 text-white",
-      iconColor: "text-white"
+      iconColor: "text-white",
+      external: true
     },
     {
       title: "Formulário",
@@ -39,8 +40,12 @@ const Credits = () => {
     }
   ];
 
-  const handleCardClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const handleCardClick = (url: string, external?: boolean) => {
+    if (external) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -64,7 +69,7 @@ const Credits = () => {
               <Card 
                 key={index} 
                 className="card-trans cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl" 
-                onClick={() => handleCardClick(link.url)}
+                onClick={() => handleCardClick(link.url, link.external)}
               >
                 <CardHeader className="text-center pb-4">
                   <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${link.color}`}>
@@ -74,18 +79,18 @@ const Credits = () => {
                     {link.title}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="text-center">
+                <CardContent className="text-center px-4 pb-6">
                   <p className="text-gray-600 mb-6">
                     {link.description}
                   </p>
                   <Button 
-                    className={`w-full ${link.color} transition-colors`} 
+                    className={`w-full ${link.color} transition-colors flex items-center justify-center gap-2`} 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleCardClick(link.url);
+                      handleCardClick(link.url, link.external);
                     }}
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <ExternalLink className="w-4 h-4" />
                     Acessar
                   </Button>
                 </CardContent>
