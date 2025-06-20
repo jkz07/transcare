@@ -25,7 +25,7 @@ const Credits = () => {
       title: "Site Oficial",
       description: "Visite nosso site principal",
       icon: Globe,
-      url: "https://transcare-journey-hub.lovable.app",
+      url: "https://transcare-site.lovable.app/",
       color: "bg-green-600 hover:bg-green-700 text-white",
       iconColor: "text-white",
       external: true
