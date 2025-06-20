@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -226,25 +225,23 @@ const Agenda = () => {
                   Calendário
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-2">
-                <div className="w-full">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    locale={ptBR}
-                    className="rounded-md border w-full p-0"
-                    modifiers={{
-                      hasEvent: eventDates
-                    }}
-                    modifiersStyles={{
-                      hasEvent: {
-                        backgroundColor: 'rgb(59 130 246 / 0.2)',
-                        color: 'rgb(29 78 216)'
-                      }
-                    }}
-                  />
-                </div>
+              <CardContent className="p-1">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  locale={ptBR}
+                  className="rounded-md border w-full p-1"
+                  modifiers={{
+                    hasEvent: eventDates
+                  }}
+                  modifiersStyles={{
+                    hasEvent: {
+                      backgroundColor: 'rgb(59 130 246 / 0.2)',
+                      color: 'rgb(29 78 216)'
+                    }
+                  }}
+                />
               </CardContent>
             </Card>
 
