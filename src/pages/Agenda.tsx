@@ -226,14 +226,14 @@ const Agenda = () => {
                   Calendário
                 </CardTitle>
               </CardHeader>
-              <CardContent className="flex justify-center p-2">
+              <CardContent className="flex justify-center px-2">
                 <div className="w-full max-w-sm">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     locale={ptBR}
-                    className="rounded-md border w-full p-0"
+                    className="rounded-md border w-full"
                     modifiers={{
                       hasEvent: eventDates
                     }}
