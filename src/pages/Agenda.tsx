@@ -225,13 +225,13 @@ const Agenda = () => {
                   Calendário
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-1">
+              <CardContent className="p-1 flex justify-center">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   locale={ptBR}
-                  className="rounded-md border w-full p-1"
+                  className="rounded-md border"
                   modifiers={{
                     hasEvent: eventDates
                   }}
