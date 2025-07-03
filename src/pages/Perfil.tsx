@@ -1,5 +1,5 @@
+
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { User, Edit, Settings, MessageSquare, Camera, Shield, Heart } from "luci
 import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
-  const { isAuthenticated, profile, updateProfile, loading } = useAuth();
+  const { profile, updateProfile, loading, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -47,11 +47,13 @@ const Perfil = () => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
   const handleSave = async () => {
+    if (!isAuthenticated) {
+      console.log('Usuário não autenticado - salvamento simulado');
+      setIsEditing(false);
+      return;
+    }
+
     const { error } = await updateProfile({
       name: formData.name,
       birth_date: formData.birth_date,
@@ -128,6 +130,7 @@ const Perfil = () => {
   };
 
   const age = profile?.birth_date ? calculateAge(profile.birth_date) : null;
+  const displayName = profile?.name || formData.name || 'Usuário';
 
   return (
     <div className="min-h-screen py-8">
@@ -140,7 +143,7 @@ const Perfil = () => {
               <div className="relative">
                 <Avatar className="w-32 h-32">
                   <AvatarFallback className="text-4xl">
-                    {profile?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                    {displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <Button size="sm" className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0" variant="outline">
@@ -152,16 +155,16 @@ const Perfil = () => {
               <div className="flex-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
                   <div>
-                    <h1 className="text-3xl font-bold mb-2">{profile?.name || 'Usuário'}</h1>
+                    <h1 className="text-3xl font-bold mb-2">{displayName}</h1>
                     <p className="text-gray-600 mb-2">
-                      {age ? `${age} anos` : ''} {age && profile?.location && '•'} {profile?.location || ''}
+                      {age ? `${age} anos` : ''} {age && (profile?.location || formData.location) && '•'} {profile?.location || formData.location || ''}
                     </p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                       <Badge className="bg-trans-blue text-white">
-                        {getThTypeLabel(profile?.th_type || 'feminizante')}
+                        {getThTypeLabel(profile?.th_type || formData.th_type || 'feminizante')}
                       </Badge>
                       <Badge variant="outline">
-                        {getJourneyTimeLabel(profile?.journey_time || '1-2anos')}
+                        {getJourneyTimeLabel(profile?.journey_time || formData.journey_time || '1-2anos')}
                       </Badge>
                       <Badge variant="outline">Membro</Badge>
                     </div>
