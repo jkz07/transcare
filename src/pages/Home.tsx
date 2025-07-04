@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -120,9 +121,9 @@ const Home = () => {
                     {/* Custom Video Cover */}
                     <div className="absolute inset-0 bg-gradient-to-br from-trans-blue/10 to-trans-pink/10">
                       <img 
-                        src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-                        alt="Dr. Ailton Santos no ambulatório"
-                        className="w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity duration-300"
+                        src="/lovable-uploads/5a749a92-3595-4e83-93dc-518a4611b24c.png" 
+                        alt="TransCare em palavras reais - Dr. Ailton Santos"
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-95 transition-opacity duration-300"
                       />
                     </div>
                     
