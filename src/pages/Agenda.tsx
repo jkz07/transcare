@@ -1,178 +1,142 @@
+
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Clock, Plus, Stethoscope, Pill, CalendarDays, User, Edit, Trash2, Lock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { toast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { CalendarDays, Clock, MapPin, Plus, Edit, Trash2, Filter, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface AgendaEvent {
   id: string;
   title: string;
-  type: 'consulta' | 'exame' | 'medicamento' | 'terapia';
+  type: string;
   date: string;
   time: string;
   description?: string;
   user_id: string;
 }
 
-const eventTypes = [
-  { value: 'consulta', label: 'Consulta Médica', color: 'bg-blue-500' },
-  { value: 'exame', label: 'Exame', color: 'bg-orange-500' },
-  { value: 'medicamento', label: 'Medicamento', color: 'bg-green-500' },
-  { value: 'terapia', label: 'Terapia', color: 'bg-purple-500' }
-];
-
 const Agenda = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { isAuthenticated, user } = useAuth();
   const [events, setEvents] = useState<AgendaEvent[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<AgendaEvent[]>([]);
-  const [selectedType, setSelectedType] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
-  const [formData, setFormData] = useState({
+  const [newEvent, setNewEvent] = useState({
     title: '',
-    type: 'consulta' as const,
+    type: '',
     date: '',
     time: '',
     description: ''
   });
-  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    loadEvents();
-  }, []);
-
-  useEffect(() => {
-    filterEvents();
-  }, [events, selectedType]);
-
-  const loadEvents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('agenda_events')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      setEvents(data || []);
-    } catch (error) {
-      console.error('Error loading events:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os eventos.",
-        variant: "destructive",
-      });
+    if (isAuthenticated) {
+      fetchEvents();
     }
-  };
+  }, [isAuthenticated]);
 
-  const filterEvents = () => {
-    if (selectedType === 'all') {
-      setFilteredEvents(events);
-    } else {
-      setFilteredEvents(events.filter(event => event.type === selectedType));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isAuthenticated || !user) {
-      toast({
-        title: "Erro",
-        description: "Você precisa estar logado para criar eventos.",
-        variant: "destructive",
-      });
+  const fetchEvents = async () => {
+    // Só buscar eventos se o usuário estiver logado
+    if (!isAuthenticated) {
+      setEvents([]);
       return;
     }
 
-    try {
-      const eventData = {
-        ...formData,
-        user_id: user.id
-      };
+    const { data, error } = await supabase
+      .from('agenda_events')
+      .select('*')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
 
-      if (editingEvent) {
-        const { error } = await supabase
-          .from('agenda_events')
-          .update(eventData)
-          .eq('id', editingEvent.id);
+    if (data && !error) {
+      setEvents(data);
+    }
+  };
 
-        if (error) throw error;
+  const handleCreateEvent = async () => {
+    if (!newEvent.title || !newEvent.type || !newEvent.date || !newEvent.time || !user) {
+      return;
+    }
 
-        toast({
-          title: "Sucesso",
-          description: "Evento atualizado com sucesso!",
-        });
-      } else {
-        const { error } = await supabase
-          .from('agenda_events')
-          .insert([eventData]);
-
-        if (error) throw error;
-
-        toast({
-          title: "Sucesso",
-          description: "Evento criado com sucesso!",
-        });
+    if (editingEvent) {
+      // Só permite editar se for o próprio usuário
+      if (editingEvent.user_id !== user.id) {
+        return;
       }
 
-      setIsDialogOpen(false);
-      setEditingEvent(null);
-      setFormData({
-        title: '',
-        type: 'consulta',
-        date: '',
-        time: '',
-        description: ''
-      });
-      loadEvents();
-    } catch (error) {
-      console.error('Error saving event:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível salvar o evento.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDelete = async (eventId: string) => {
-    try {
       const { error } = await supabase
         .from('agenda_events')
-        .delete()
-        .eq('id', eventId);
+        .update({
+          title: newEvent.title,
+          type: newEvent.type,
+          date: newEvent.date,
+          time: newEvent.time,
+          description: newEvent.description
+        })
+        .eq('id', editingEvent.id);
 
-      if (error) throw error;
+      if (!error) {
+        setEditingEvent(null);
+        resetForm();
+        fetchEvents();
+      }
+    } else {
+      const { error } = await supabase
+        .from('agenda_events')
+        .insert([{
+          title: newEvent.title,
+          type: newEvent.type,
+          date: newEvent.date,
+          time: newEvent.time,
+          description: newEvent.description,
+          user_id: user.id
+        }]);
 
-      toast({
-        title: "Sucesso",
-        description: "Evento excluído com sucesso!",
-      });
-      loadEvents();
-    } catch (error) {
-      console.error('Error deleting event:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível excluir o evento.",
-        variant: "destructive",
-      });
+      if (!error) {
+        resetForm();
+        fetchEvents();
+      }
     }
   };
 
-  const openEditDialog = (event: AgendaEvent) => {
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!user) return;
+    
+    // Verificar se o evento pertence ao usuário
+    const event = events.find(e => e.id === eventId);
+    if (!event || event.user_id !== user.id) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from('agenda_events')
+      .delete()
+      .eq('id', eventId);
+
+    if (!error) {
+      fetchEvents();
+    }
+  };
+
+  const handleEditEvent = (event: AgendaEvent) => {
+    // Só permite editar se for o próprio usuário
+    if (!user || event.user_id !== user.id) {
+      return;
+    }
+
     setEditingEvent(event);
-    setFormData({
+    setNewEvent({
       title: event.title,
       type: event.type,
       date: event.date,
@@ -182,47 +146,64 @@ const Agenda = () => {
     setIsDialogOpen(true);
   };
 
-  const closeDialog = () => {
+  const resetForm = () => {
+    setNewEvent({ title: '', type: '', date: '', time: '', description: '' });
     setIsDialogOpen(false);
     setEditingEvent(null);
-    setFormData({
-      title: '',
-      type: 'consulta',
-      date: '',
-      time: '',
-      description: ''
-    });
   };
 
-  const getEventTypeInfo = (type: string) => {
-    return eventTypes.find(t => t.value === type) || eventTypes[0];
+  const getEventIcon = (type: string) => {
+    switch (type) {
+      case 'consulta': return Stethoscope;
+      case 'medicamento': return Pill;
+      case 'exame': return CalendarDays;
+      case 'terapia': return User;
+      default: return CalendarDays;
+    }
   };
 
-  const getTodayEvents = () => {
-    if (!selectedDate) return [];
-    const today = format(selectedDate, 'yyyy-MM-dd');
-    return filteredEvents.filter(event => event.date === today);
+  const getEventColor = (type: string) => {
+    switch (type) {
+      case 'consulta': return 'border-l-blue-500 bg-blue-50';
+      case 'medicamento': return 'border-l-green-500 bg-green-50';
+      case 'exame': return 'border-l-orange-500 bg-orange-50';
+      case 'terapia': return 'border-l-purple-500 bg-purple-50';
+      default: return 'border-l-gray-400 bg-gray-50';
+    }
   };
 
-  const getUpcomingEvents = () => {
-    const today = new Date();
-    const todayStr = format(today, 'yyyy-MM-dd');
-    return filteredEvents
-      .filter(event => event.date >= todayStr)
-      .slice(0, 5);
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'consulta': return 'Consulta';
+      case 'medicamento': return 'Medicamento';
+      case 'exame': return 'Exame';
+      case 'terapia': return 'Terapia';
+      default: return type;
+    }
   };
 
-  const eventDatesByType = events.length > 0 ? events.reduce((acc, event) => {
-    const dateKey = event.date;
+  // Filtrar eventos apenas se estiver logado
+  const selectedDateEvents = isAuthenticated ? events.filter(event => {
+    if (!selectedDate) return false;
+    const eventDate = new Date(event.date + 'T00:00:00');
+    const selectedDateOnly = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    return eventDateOnly.getTime() === selectedDateOnly.getTime();
+  }) : [];
+
+  // Criar objetos de data com cores baseadas no tipo de evento
+  const eventDatesByType = isAuthenticated ? events.reduce((acc, event) => {
+    const eventDate = new Date(event.date + 'T00:00:00');
+    const dateKey = eventDate.toDateString();
+    
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
-    if (!acc[dateKey].includes(event.type)) {
-      acc[dateKey].push(event.type);
-    }
+    acc[dateKey].push(event.type);
     return acc;
   }, {} as Record<string, string[]>) : {};
 
+  // Criar modifiers dinâmicos por tipo de evento
   const consultaEvents = Object.keys(eventDatesByType).filter(dateKey => 
     eventDatesByType[dateKey].includes('consulta')
   ).map(dateStr => new Date(dateStr));
@@ -244,111 +225,32 @@ const Agenda = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10">
+    <div className="min-h-screen bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4">
-            <span className="gradient-text">Agenda</span>
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl lg:text-5xl font-bold mb-4 gradient-text">
+            {isAuthenticated ? 'Minha Agenda' : 'Agenda Pessoal'}
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Organize seus compromissos médicos, exames e medicamentos
+            {isAuthenticated 
+              ? 'Organize seus compromissos médicos e eventos importantes' 
+              : 'Faça login para acessar e organizar sua agenda pessoal'
+            }
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card className="card-trans">
-              <CardHeader className="flex flex-row items-center justify-between">
+          {/* Calendar */}
+          <div className="lg:col-span-1">
+            <Card className="bg-white/80 backdrop-blur-sm">
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CalendarDays className="w-6 h-6 text-trans-blue" />
+                  <CalendarDays className="w-5 h-5" />
                   Calendário
                 </CardTitle>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="bg-gradient-to-r from-trans-blue to-trans-pink border-0"
-                      disabled={!isAuthenticated}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Novo Evento
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingEvent ? 'Editar Evento' : 'Novo Evento'}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div>
-                        <Label htmlFor="title">Título</Label>
-                        <Input
-                          id="title"
-                          value={formData.title}
-                          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="type">Tipo</Label>
-                        <Select 
-                          value={formData.type} 
-                          onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {eventTypes.map(type => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="date">Data</Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={formData.date}
-                          onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="time">Horário</Label>
-                        <Input
-                          id="time"
-                          type="time"
-                          value={formData.time}
-                          onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="description">Descrição</Label>
-                        <Textarea
-                          id="description"
-                          value={formData.description}
-                          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="Adicione detalhes sobre o evento..."
-                        />
-                      </div>
-                      <div className="flex gap-2 pt-4">
-                        <Button type="submit" className="flex-1">
-                          {editingEvent ? 'Atualizar' : 'Criar'}
-                        </Button>
-                        <Button type="button" variant="outline" onClick={closeDialog}>
-                          Cancelar
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
               </CardHeader>
-              <CardContent className="flex justify-center">
+              <CardContent className="p-1 flex justify-center">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -386,192 +288,274 @@ const Agenda = () => {
                 />
               </CardContent>
             </Card>
+
+            {/* Add Event Button - Only for authenticated users */}
+            <Card className="bg-white/80 backdrop-blur-sm mt-6">
+              <CardContent className="p-6">
+                {isAuthenticated ? (
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                        onClick={() => {
+                          if (selectedDate) {
+                            // Corrigir a formatação da data para evitar problemas de fuso horário
+                            const year = selectedDate.getFullYear();
+                            const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(selectedDate.getDate()).padStart(2, '0');
+                            const formattedDate = `${year}-${month}-${day}`;
+                            
+                            setNewEvent(prev => ({ 
+                              ...prev, 
+                              date: formattedDate
+                            }));
+                          }
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Novo Evento
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[500px]">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-bold gradient-text">
+                          {editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-6 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Título do Evento</Label>
+                          <Input 
+                            id="title" 
+                            placeholder="Ex: Consulta com Dr. Silva"
+                            value={newEvent.title}
+                            onChange={(e) => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="type">Tipo de Evento</Label>
+                          <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="consulta">🩺 Consulta Médica</SelectItem>
+                              <SelectItem value="medicamento">💊 Medicamento</SelectItem>
+                              <SelectItem value="exame">🔬 Exame</SelectItem>
+                              <SelectItem value="terapia">👤 Terapia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="date">Data</Label>
+                            <Input 
+                              id="date" 
+                              type="date" 
+                              value={newEvent.date}
+                              onChange={(e) => setNewEvent(prev => ({ ...prev, date: e.target.value }))}
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="time">Horário</Label>
+                            <Input 
+                              id="time" 
+                              type="time" 
+                              value={newEvent.time}
+                              onChange={(e) => setNewEvent(prev => ({ ...prev, time: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Descrição (opcional)</Label>
+                          <Textarea 
+                            id="description" 
+                            placeholder="Adicione detalhes sobre o evento..."
+                            value={newEvent.description}
+                            onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={resetForm}>
+                          Cancelar
+                        </Button>
+                        <Button 
+                          className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                          onClick={handleCreateEvent}
+                        >
+                          {editingEvent ? 'Atualizar' : 'Criar'} Evento
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ) : (
+                  <div className="text-center">
+                    <Lock className="w-8 h-8 mx-auto text-gray-400 mb-3" />
+                    <p className="text-sm text-gray-500 mb-4">
+                      Faça login para criar eventos
+                    </p>
+                    <Button 
+                      onClick={() => window.location.href = '/login'}
+                      className="w-full bg-gradient-to-r from-trans-blue to-trans-pink text-white"
+                    >
+                      Fazer Login
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card className="card-trans">
+          {/* Events for Selected Date */}
+          <div className="lg:col-span-2">
+            <Card className="bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-trans-blue" />
-                  Filtros
+                  <Clock className="w-5 h-5" />
+                  {isAuthenticated 
+                    ? `Eventos - ${selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}`
+                    : 'Faça login para ver seus eventos'
+                  }
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os eventos</SelectItem>
-                    {eventTypes.map(type => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
-            <Card className="card-trans">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-trans-blue" />
-                  {selectedDate ? `Eventos de ${format(selectedDate, 'dd/MM/yyyy')}` : 'Hoje'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {getTodayEvents().map((event) => {
-                    const typeInfo = getEventTypeInfo(event.type);
-                    return (
-                      <div key={event.id} className="p-3 rounded-lg border bg-white/50 hover:bg-white/80 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className={`w-3 h-3 rounded-full ${typeInfo.color}`}></div>
-                              <span className="font-medium text-gray-900">{event.title}</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-1">
-                              {typeInfo.label} • {event.time}
-                            </p>
-                            {event.description && (
-                              <p className="text-sm text-gray-500">{event.description}</p>
-                            )}
-                          </div>
-                          {canUserEditEvent(event) && (
-                            <div className="flex gap-1 ml-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => openEditDialog(event)}
-                                className="p-1 h-8 w-8"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
+                {!isAuthenticated ? (
+                  <div className="text-center py-8">
+                    <Lock className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">
+                      Você precisa estar logado para ver seus eventos
+                    </p>
+                  </div>
+                ) : selectedDateEvents.length > 0 ? (
+                  <div className="space-y-4">
+                    {selectedDateEvents.map((event) => {
+                      const EventIcon = getEventIcon(event.type);
+                      const canEdit = canUserEditEvent(event);
+                      
+                      return (
+                        <Card key={event.id} className={`${getEventColor(event.type)} border-l-4`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3">
+                                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                  <EventIcon className="w-5 h-5 text-gray-600" />
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                                    <Badge variant="secondary" className="capitalize text-xs">
+                                      {getTypeLabel(event.type)}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                                    <Clock className="w-4 h-4" />
+                                    <span>{event.time}</span>
+                                  </div>
+                                  
+                                  {event.description && (
+                                    <p className="text-sm text-gray-600">
+                                      {event.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {canEdit && (
+                                <div className="flex gap-2">
                                   <Button
+                                    variant="outline"
                                     size="sm"
-                                    variant="ghost"
-                                    className="p-1 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => handleEditEvent(event)}
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDeleteEvent(event.id)}
+                                    className="text-red-600 hover:text-red-800"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Tem certeza de que deseja excluir o evento "{event.title}"? 
-                                      Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={() => handleDelete(event.id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {getTodayEvents().length === 0 && (
-                    <p className="text-gray-500 text-center py-4">
-                      Nenhum evento para {selectedDate ? 'este dia' : 'hoje'}.
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CalendarDays className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">
+                      Nenhum evento para esta data
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card className="card-trans">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-trans-blue" />
-                  Próximos Eventos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {getUpcomingEvents().map((event) => {
-                    const typeInfo = getEventTypeInfo(event.type);
-                    return (
-                      <div key={event.id} className="p-3 rounded-lg border bg-white/50 hover:bg-white/80 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className={`w-3 h-3 rounded-full ${typeInfo.color}`}></div>
-                              <span className="font-medium text-gray-900">{event.title}</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-1">
-                              {typeInfo.label} • {format(new Date(event.date), 'dd/MM/yyyy')} às {event.time}
-                            </p>
-                            {event.description && (
-                              <p className="text-sm text-gray-500">{event.description}</p>
-                            )}
-                          </div>
-                          {canUserEditEvent(event) && (
-                            <div className="flex gap-1 ml-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => openEditDialog(event)}
-                                className="p-1 h-8 w-8"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="p-1 h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Tem certeza de que deseja excluir o evento "{event.title}"? 
-                                      Esta ação não pode ser desfeita.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={() => handleDelete(event.id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      Excluir
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {getUpcomingEvents().length === 0 && (
-                    <p className="text-gray-500 text-center py-4">
-                      Nenhum evento próximo.
+            {/* Summary Statistics - Only show if authenticated */}
+            {isAuthenticated && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <Stethoscope className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-lg font-bold text-blue-600">
+                      {events.filter(e => e.type === 'consulta').length}
                     </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    <p className="text-xs text-gray-600">Consultas</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <Pill className="w-4 h-4 text-green-600" />
+                    </div>
+                    <p className="text-lg font-bold text-green-600">
+                      {events.filter(e => e.type === 'medicamento').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Medicamentos</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <CalendarDays className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <p className="text-lg font-bold text-orange-600">
+                      {events.filter(e => e.type === 'exame').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Exames</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/70 backdrop-blur-sm">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <User className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <p className="text-lg font-bold text-purple-600">
+                      {events.filter(e => e.type === 'terapia').length}
+                    </p>
+                    <p className="text-xs text-gray-600">Terapias</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -580,3 +564,4 @@ const Agenda = () => {
 };
 
 export default Agenda;
+
