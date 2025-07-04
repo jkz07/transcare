@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,10 +16,12 @@ import { CalendarDays, Clock, MapPin, Plus, Edit, Trash2, Filter, X } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+type EventType = 'consulta' | 'exame' | 'medicamento' | 'terapia';
+
 interface AgendaEvent {
   id: string;
   title: string;
-  type: 'consulta' | 'exame' | 'medicamento' | 'terapia';
+  type: EventType;
   date: string;
   time: string;
   description?: string;
@@ -26,10 +29,10 @@ interface AgendaEvent {
 }
 
 const eventTypes = [
-  { value: 'consulta', label: 'Consulta Médica', color: 'bg-blue-500' },
-  { value: 'exame', label: 'Exame', color: 'bg-orange-500' },
-  { value: 'medicamento', label: 'Medicamento', color: 'bg-green-500' },
-  { value: 'terapia', label: 'Terapia', color: 'bg-purple-500' }
+  { value: 'consulta' as const, label: 'Consulta Médica', color: 'bg-blue-500' },
+  { value: 'exame' as const, label: 'Exame', color: 'bg-orange-500' },
+  { value: 'medicamento' as const, label: 'Medicamento', color: 'bg-green-500' },
+  { value: 'terapia' as const, label: 'Terapia', color: 'bg-purple-500' }
 ];
 
 const Agenda = () => {
@@ -41,7 +44,7 @@ const Agenda = () => {
   const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
   const [formData, setFormData] = useState({
     title: '',
-    type: 'consulta' as const,
+    type: 'consulta' as EventType,
     date: '',
     time: '',
     description: ''
@@ -64,7 +67,14 @@ const Agenda = () => {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      setEvents(data || []);
+      
+      // Type assertion to ensure the data matches our interface
+      const typedEvents = (data || []).map(event => ({
+        ...event,
+        type: event.type as EventType
+      })) as AgendaEvent[];
+      
+      setEvents(typedEvents);
     } catch (error) {
       console.error('Error loading events:', error);
       toast({
@@ -221,7 +231,7 @@ const Agenda = () => {
       acc[dateKey].push(event.type);
     }
     return acc;
-  }, {} as Record<string, string[]>) : {};
+  }, {} as Record<string, EventType[]>) : {};
 
   const consultaEvents = Object.keys(eventDatesByType).filter(dateKey => 
     eventDatesByType[dateKey].includes('consulta')
@@ -293,7 +303,7 @@ const Agenda = () => {
                         <Label htmlFor="type">Tipo</Label>
                         <Select 
                           value={formData.type} 
-                          onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}
+                          onValueChange={(value: EventType) => setFormData(prev => ({ ...prev, type: value }))}
                         >
                           <SelectTrigger>
                             <SelectValue />
