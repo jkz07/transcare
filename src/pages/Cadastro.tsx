@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
 
 const Cadastro = () => {
@@ -26,6 +26,7 @@ const Cadastro = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -59,6 +60,10 @@ const Cadastro = () => {
     if (registerError) {
       setError(registerError);
     } else {
+      toast({
+        title: "Conta criada com sucesso!",
+        description: "Sua conta foi criada. Agora você pode fazer login para acessar sua jornada no TransCare.",
+      });
       navigate('/login');
     }
     setIsLoading(false);
