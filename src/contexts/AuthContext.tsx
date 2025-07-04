@@ -65,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 email: session.user.email || '',
                 birth_date: profileData.birth_date,
                 location: profileData.location,
-                phone: (profileData as any).phone, // Safe access to phone property
+                phone: profileData.phone,
                 th_type: profileData.th_type,
                 journey_time: profileData.journey_time
               });

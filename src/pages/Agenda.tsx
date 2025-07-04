@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarDays, Clock, MapPin, Plus, Edit, Trash2, Filter, X, Stethoscope, TestTube, Pill, Heart } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Plus, Edit, Trash2, Filter, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -28,10 +29,10 @@ interface AgendaEvent {
 }
 
 const eventTypes = [
-  { value: 'consulta' as const, label: 'Consulta Médica', color: 'bg-blue-500', icon: Stethoscope },
-  { value: 'exame' as const, label: 'Exame', color: 'bg-orange-500', icon: TestTube },
-  { value: 'medicamento' as const, label: 'Medicamento', color: 'bg-green-500', icon: Pill },
-  { value: 'terapia' as const, label: 'Terapia', color: 'bg-purple-500', icon: Heart }
+  { value: 'consulta' as const, label: 'Consulta Médica', color: 'bg-blue-500' },
+  { value: 'exame' as const, label: 'Exame', color: 'bg-orange-500' },
+  { value: 'medicamento' as const, label: 'Medicamento', color: 'bg-green-500' },
+  { value: 'terapia' as const, label: 'Terapia', color: 'bg-purple-500' }
 ];
 
 const Agenda = () => {
@@ -67,6 +68,7 @@ const Agenda = () => {
 
       if (error) throw error;
       
+      // Type assertion to ensure the data matches our interface
       const typedEvents = (data || []).map(event => ({
         ...event,
         type: event.type as EventType
@@ -220,25 +222,6 @@ const Agenda = () => {
       .slice(0, 5);
   };
 
-  const getEventCounts = () => {
-    const counts = {
-      consulta: 0,
-      exame: 0,
-      medicamento: 0,
-      terapia: 0
-    };
-    
-    events.forEach(event => {
-      if (counts.hasOwnProperty(event.type)) {
-        counts[event.type]++;
-      }
-    });
-    
-    return counts;
-  };
-
-  const eventCounts = getEventCounts();
-
   const eventDatesByType = events.length > 0 ? events.reduce((acc, event) => {
     const dateKey = event.date;
     if (!acc[dateKey]) {
@@ -280,32 +263,6 @@ const Agenda = () => {
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Organize seus compromissos médicos, exames e medicamentos
           </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {eventTypes.map((eventType) => {
-            const Icon = eventType.icon;
-            const count = eventCounts[eventType.value];
-            return (
-              <Card key={eventType.value} className="card-trans">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        {eventType.label}
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {count}
-                      </p>
-                    </div>
-                    <div className={`p-3 rounded-full ${eventType.color}/20`}>
-                      <Icon className={`w-6 h-6 ${eventType.color.replace('bg-', 'text-')}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
