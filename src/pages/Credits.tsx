@@ -6,22 +6,6 @@ import { Github, FileText, Globe, ExternalLink, ClipboardList } from "lucide-rea
 const Credits = () => {
   const links = [
     {
-      title: "GitHub",
-      description: "Acesse o código fonte do projeto",
-      icon: Github,
-      url: "https://github.com/jkz07/transcare",
-      color: "bg-gray-900 hover:bg-gray-800 text-white",
-      iconColor: "text-white"
-    },
-    {
-      title: "Documentação",
-      description: "Consulte a documentação completa",
-      icon: FileText,
-      url: "file:///D:/TCC%20-%20Transcare.pdf",
-      color: "bg-blue-600 hover:bg-blue-700 text-white",
-      iconColor: "text-white"
-    },
-    {
       title: "Site Oficial",
       description: "Visite nosso site principal",
       icon: Globe,
@@ -29,6 +13,22 @@ const Credits = () => {
       color: "bg-green-600 hover:bg-green-700 text-white",
       iconColor: "text-white",
       external: true
+    },
+    {
+      title: "Documentação",
+      description: "Consulte a documentação completa",
+      icon: FileText,
+      url: "https://drive.google.com/file/d/1sNhQVf8N_5HRXDyu8WU3HPsY9qu5M-6u/view?usp=drive_link",
+      color: "bg-blue-600 hover:bg-blue-700 text-white",
+      iconColor: "text-white"
+    },
+    {
+      title: "GitHub",
+      description: "Acesse o código fonte do projeto",
+      icon: Github,
+      url: "https://github.com/jkz07/transcare",
+      color: "bg-gray-900 hover:bg-gray-800 text-white",
+      iconColor: "text-white"
     },
     {
       title: "Formulário",
