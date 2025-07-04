@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -379,12 +380,6 @@ const Perfil = () => {
               <CardContent className="space-y-4">
                 <Button variant="outline" className="w-full justify-start">
                   Alterar Senha
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  Configurar Autenticação de Dois Fatores
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  Baixar Meus Dados
                 </Button>
                 <Button variant="destructive" className="w-full justify-start">
                   Excluir Conta

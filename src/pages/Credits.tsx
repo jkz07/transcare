@@ -49,7 +49,7 @@ const Credits = () => {
   };
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in">

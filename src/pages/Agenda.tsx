@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -189,11 +190,33 @@ const Agenda = () => {
     return eventDateOnly.getTime() === selectedDateOnly.getTime();
   }) : [];
 
-  // Datas com eventos apenas se estiver logado
-  const eventDates = isAuthenticated ? events.map(event => {
+  // Criar objetos de data com cores baseadas no tipo de evento
+  const eventDatesByType = isAuthenticated ? events.reduce((acc, event) => {
     const eventDate = new Date(event.date + 'T00:00:00');
-    return new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
-  }) : [];
+    const dateKey = eventDate.toDateString();
+    
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(event.type);
+    return acc;
+  }, {} as Record<string, string[]>) : {};
+
+  // Função para determinar a cor predominante de um dia
+  const getDayColor = (date: Date) => {
+    const dateKey = date.toDateString();
+    const types = eventDatesByType[dateKey];
+    
+    if (!types || types.length === 0) return '';
+    
+    // Prioridade: consulta > exame > medicamento > terapia
+    if (types.includes('consulta')) return 'rgb(59 130 246)'; // blue
+    if (types.includes('exame')) return 'rgb(249 115 22)'; // orange
+    if (types.includes('medicamento')) return 'rgb(34 197 94)'; // green
+    if (types.includes('terapia')) return 'rgb(168 85 247)'; // purple
+    
+    return 'rgb(107 114 128)'; // gray
+  };
 
   const canUserEditEvent = (event: AgendaEvent) => {
     return isAuthenticated && user && event.user_id === user.id;
@@ -233,13 +256,14 @@ const Agenda = () => {
                   locale={ptBR}
                   className="rounded-md border"
                   modifiers={{
-                    hasEvent: eventDates
+                    hasEvent: Object.keys(eventDatesByType).map(dateStr => new Date(dateStr))
                   }}
                   modifiersStyles={{
-                    hasEvent: {
-                      backgroundColor: 'rgb(59 130 246 / 0.2)',
-                      color: 'rgb(29 78 216)'
-                    }
+                    hasEvent: (date) => ({
+                      backgroundColor: `${getDayColor(date)}20`,
+                      color: getDayColor(date),
+                      fontWeight: 'bold'
+                    })
                   }}
                 />
               </CardContent>
