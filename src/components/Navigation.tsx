@@ -34,11 +34,9 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/0985ab7d-b7e8-4213-bd23-e5fbfd9bc044.png" 
-              alt="TransCare Logo" 
-              className="w-10 h-10 object-contain"
-            />
+            <div className="w-10 h-10 bg-gradient-to-r from-trans-blue to-trans-pink rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">T</span>
+            </div>
             <span className="font-bold text-xl gradient-text">TransCare</span>
           </Link>
 
