@@ -1,10 +1,12 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Shield, Users, Calendar, ArrowRight, Play, ExternalLink } from "lucide-react";
+import { Heart, Shield, Users, Calendar, ArrowRight, Play, ExternalLink, Maximize2 } from "lucide-react";
+import { useState } from "react";
 
 const Home = () => {
+  const [showEmbeddedVideo, setShowEmbeddedVideo] = useState(false);
+
   const features = [
     {
       icon: Heart,
@@ -33,6 +35,10 @@ const Home = () => {
   ];
 
   const handleVideoClick = () => {
+    setShowEmbeddedVideo(true);
+  };
+
+  const handleExternalVideoClick = () => {
     window.open('https://drive.google.com/file/d/1pp42nWTHn54REgEnvZ-4YI9pm-zZ2FEE/view?usp=sharing', '_blank');
   };
 
@@ -99,48 +105,83 @@ const Home = () => {
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-4">Experiência Profissional</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
-              Conheça o depoimento de um profissional da área da saúde que compartilha sua experiência prática com o TransCare e como nossa plataforma tem apoiado pacientes em sua jornada de terapia hormonal.
+              Conheça o depoimento do Dr. Ailton Santos, gestor do ambulatório estadual de pessoas trans, que compartilha sua experiência prática com o TransCare e como nossa plataforma tem apoiado pacientes em sua jornada de terapia hormonal.
             </p>
           </div>
           
           <div className="relative">
             <Card className="card-trans overflow-hidden">
               <CardContent className="p-0">
-                <div 
-                  className="relative aspect-video bg-gradient-to-br from-trans-blue/20 to-trans-pink/20 overflow-hidden cursor-pointer group"
-                  onClick={handleVideoClick}
-                >
-                  {/* Custom Video Cover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-trans-blue/10 to-trans-pink/10">
-                    <img 
-                      src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-                      alt="Profissional da saúde em consultório"
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity duration-300"
-                    />
-                  </div>
-                  
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all duration-300">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-trans-blue to-trans-pink flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
-                      <Play className="w-8 h-8 text-white ml-1" fill="white" />
+                {!showEmbeddedVideo ? (
+                  <div 
+                    className="relative aspect-video bg-gradient-to-br from-trans-blue/20 to-trans-pink/20 overflow-hidden cursor-pointer group"
+                    onClick={handleVideoClick}
+                  >
+                    {/* Custom Video Cover */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-trans-blue/10 to-trans-pink/10">
+                      <img 
+                        src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                        alt="Dr. Ailton Santos no ambulatório"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity duration-300"
+                      />
                     </div>
-                  </div>
-                  
-                  {/* Video Title Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-white text-xl font-semibold mb-2">
-                          Depoimento: Dr. Alex Silva
-                        </h3>
-                        <p className="text-white/80 text-sm">
-                          Endocrinologista especializado em terapia hormonal para pessoas trans
-                        </p>
+                    
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all duration-300">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-r from-trans-blue to-trans-pink flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
+                        <Play className="w-8 h-8 text-white ml-1" fill="white" />
                       </div>
-                      <ExternalLink className="w-5 h-5 text-white/80" />
+                    </div>
+                    
+                    {/* Video Title Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-white text-xl font-semibold mb-2">
+                            Depoimento: Dr. Ailton Santos
+                          </h3>
+                          <p className="text-white/80 text-sm">
+                            Gestor do Ambulatório Estadual de Pessoas Trans
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExternalVideoClick();
+                            }}
+                            className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                          >
+                            <Maximize2 className="w-4 h-4 text-white/80" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="relative aspect-video">
+                    <iframe
+                      src="https://drive.google.com/file/d/1pp42nWTHn54REgEnvZ-4YI9pm-zZ2FEE/preview"
+                      className="w-full h-full"
+                      allow="autoplay"
+                      title="Depoimento Dr. Ailton Santos - TransCare"
+                    />
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <button
+                        onClick={() => setShowEmbeddedVideo(false)}
+                        className="px-3 py-1 bg-black/60 text-white text-sm rounded hover:bg-black/80 transition-colors"
+                      >
+                        Fechar
+                      </button>
+                      <button
+                        onClick={handleExternalVideoClick}
+                        className="p-2 bg-black/60 text-white rounded hover:bg-black/80 transition-colors"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
