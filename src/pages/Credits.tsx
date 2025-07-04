@@ -17,7 +17,7 @@ const Credits = () => {
       title: "Documentação",
       description: "Consulte a documentação completa",
       icon: FileText,
-      url: "https://docs.google.com/document/d/1Q3HKc-gh2tTfBOcQa8tfm3DeakSnaVjMDZjLYMpHszg/edit?tab=t.0",
+      url: "file:///D:/TCC%20-%20Transcare.pdf",
       color: "bg-blue-600 hover:bg-blue-700 text-white",
       iconColor: "text-white"
     },

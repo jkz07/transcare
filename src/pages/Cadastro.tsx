@@ -70,15 +70,13 @@ const Cadastro = () => {
         <Card className="card-trans">
           <CardHeader>
             <CardTitle className="text-center text-2xl font-bold gradient-text">
-              Cadastrar na TransCare
+              Cadastro
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Informações Básicas */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Informações Básicas</h3>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Nome *</Label>
@@ -141,8 +139,6 @@ const Cadastro = () => {
 
               {/* Informações Pessoais */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Informações Pessoais</h3>
-                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="phone">Telefone</Label>
