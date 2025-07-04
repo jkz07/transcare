@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Shield, Users, Calendar, ArrowRight } from "lucide-react";
+import { Heart, Shield, Users, Calendar, ArrowRight, Play } from "lucide-react";
 
 const Home = () => {
   const features = [
@@ -85,6 +85,39 @@ const Home = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Video Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Conheça o TransCare</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Assista ao vídeo para entender melhor como nossa plataforma pode apoiar sua jornada
+            </p>
+          </div>
+          
+          <div className="relative">
+            <Card className="card-trans overflow-hidden">
+              <CardContent className="p-0">
+                <div className="relative aspect-video bg-gradient-to-br from-trans-blue/10 to-trans-pink/10 flex items-center justify-center">
+                  {/* Placeholder para o vídeo */}
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-r from-trans-blue to-trans-pink flex items-center justify-center">
+                      <Play className="w-8 h-8 text-white ml-1" />
+                    </div>
+                    <p className="text-gray-600 text-lg">
+                      Área reservada para seu vídeo
+                    </p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      Substitua este espaço pelo seu conteúdo de vídeo
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
