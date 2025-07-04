@@ -6,6 +6,15 @@ import { Github, FileText, Globe, ExternalLink, ClipboardList } from "lucide-rea
 const Credits = () => {
   const links = [
     {
+      title: "Site Oficial",
+      description: "Visite nosso site principal",
+      icon: Globe,
+      url: "https://transcare-site.lovable.app/",
+      color: "bg-green-600 hover:bg-green-700 text-white",
+      iconColor: "text-white",
+      external: true
+    },
+    {
       title: "GitHub",
       description: "Acesse o código fonte do projeto",
       icon: Github,
@@ -20,15 +29,6 @@ const Credits = () => {
       url: "https://docs.google.com/document/d/1Q3HKc-gh2tTfBOcQa8tfm3DeakSnaVjMDZjLYMpHszg/edit?tab=t.0",
       color: "bg-blue-600 hover:bg-blue-700 text-white",
       iconColor: "text-white"
-    },
-    {
-      title: "Site Oficial",
-      description: "Visite nosso site principal",
-      icon: Globe,
-      url: "https://transcare-site.lovable.app/",
-      color: "bg-green-600 hover:bg-green-700 text-white",
-      iconColor: "text-white",
-      external: true
     },
     {
       title: "Formulário",

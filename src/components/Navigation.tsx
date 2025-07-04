@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Menu, Home, Calendar, Users, User, Dna, MessageSquare, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -70,10 +71,28 @@ const Navigation = () => {
                     Perfil
                   </Button>
                 </Link>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirmar logout</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza de que deseja sair da sua conta?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLogout}>
+                        Sair
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </>
             ) : (
               <Link to="/login">
@@ -121,13 +140,28 @@ const Navigation = () => {
                         <User className="w-5 h-5" />
                         <span className="font-medium">Perfil</span>
                       </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:text-trans-blue hover:bg-trans-blue/5 w-full text-left"
-                      >
-                        <LogOut className="w-5 h-5" />
-                        <span className="font-medium">Sair</span>
-                      </button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <button className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-600 hover:text-trans-blue hover:bg-trans-blue/5 w-full text-left">
+                            <LogOut className="w-5 h-5" />
+                            <span className="font-medium">Sair</span>
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar logout</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza de que deseja sair da sua conta?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleLogout}>
+                              Sair
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </>
                   ) : (
                     <Link
