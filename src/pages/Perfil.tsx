@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,15 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Edit, Settings, MessageSquare, Camera, Shield, Heart } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { User, Edit, Settings, MessageSquare, Camera, Shield, Heart, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Perfil = () => {
-  const { isAuthenticated, profile, updateProfile, loading } = useAuth();
+  const { isAuthenticated, profile, updateProfile, logout, loading } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    phone: '',
     birth_date: '',
     location: '',
     th_type: '',
@@ -29,6 +30,7 @@ const Perfil = () => {
     if (profile) {
       setFormData({
         name: profile.name || '',
+        phone: profile.phone || '',
         birth_date: profile.birth_date || '',
         location: profile.location || '',
         th_type: profile.th_type || '',
@@ -55,6 +57,7 @@ const Perfil = () => {
   const handleSave = async () => {
     const { error } = await updateProfile({
       name: formData.name,
+      phone: formData.phone,
       birth_date: formData.birth_date,
       location: formData.location,
       th_type: formData.th_type,
@@ -64,6 +67,10 @@ const Perfil = () => {
     if (!error) {
       setIsEditing(false);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   const userStats = {
@@ -157,6 +164,9 @@ const Perfil = () => {
                     <p className="text-gray-600 mb-2">
                       {age ? `${age} anos` : ''} {age && profile?.location && '•'} {profile?.location || ''}
                     </p>
+                    {profile?.phone && (
+                      <p className="text-gray-600 mb-2">{profile.phone}</p>
+                    )}
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                       <Badge className="bg-trans-blue text-white">
                         {getThTypeLabel(profile?.th_type || 'feminizante')}
@@ -223,6 +233,18 @@ const Perfil = () => {
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       disabled={!isEditing} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input 
+                      id="phone" 
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="(11) 99999-9999"
                     />
                   </div>
                   
@@ -381,6 +403,30 @@ const Perfil = () => {
                 <Button variant="outline" className="w-full justify-start">
                   Alterar Senha
                 </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="w-full justify-start">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair da Conta
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Sair da conta</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar suas informações.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLogout} className="bg-red-600 hover:bg-red-700">
+                        Sim, sair
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                
                 <Button variant="destructive" className="w-full justify-start">
                   Excluir Conta
                 </Button>

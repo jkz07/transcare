@@ -15,6 +15,7 @@ const Cadastro = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
     birth_date: '',
     location: '',
     th_type: '',
@@ -48,6 +49,7 @@ const Cadastro = () => {
     }
 
     const { error: registerError } = await register(formData.name, formData.email, formData.password, {
+      phone: formData.phone,
       birth_date: formData.birth_date,
       location: formData.location,
       th_type: formData.th_type,
@@ -141,7 +143,18 @@ const Cadastro = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800">Informações Pessoais</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+
                   <div>
                     <Label htmlFor="birth_date">Data de Nascimento</Label>
                     <Input

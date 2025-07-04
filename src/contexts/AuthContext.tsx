@@ -7,6 +7,7 @@ interface UserProfile {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   birth_date?: string;
   location?: string;
   th_type?: string;
@@ -62,6 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 id: profileData.id,
                 name: profileData.name,
                 email: session.user.email || '',
+                phone: profileData.phone,
                 birth_date: profileData.birth_date,
                 location: profileData.location,
                 th_type: profileData.th_type,
