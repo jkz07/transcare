@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -202,21 +203,22 @@ const Agenda = () => {
     return acc;
   }, {} as Record<string, string[]>) : {};
 
-  // Função para determinar a cor predominante de um dia
-  const getDayColor = (date: Date) => {
-    const dateKey = date.toDateString();
-    const types = eventDatesByType[dateKey];
-    
-    if (!types || types.length === 0) return '';
-    
-    // Prioridade: consulta > exame > medicamento > terapia
-    if (types.includes('consulta')) return 'rgb(59 130 246)'; // blue
-    if (types.includes('exame')) return 'rgb(249 115 22)'; // orange
-    if (types.includes('medicamento')) return 'rgb(34 197 94)'; // green
-    if (types.includes('terapia')) return 'rgb(168 85 247)'; // purple
-    
-    return 'rgb(107 114 128)'; // gray
-  };
+  // Criar modifiers dinâmicos por tipo de evento
+  const consultaEvents = Object.keys(eventDatesByType).filter(dateKey => 
+    eventDatesByType[dateKey].includes('consulta')
+  ).map(dateStr => new Date(dateStr));
+
+  const exameEvents = Object.keys(eventDatesByType).filter(dateKey => 
+    eventDatesByType[dateKey].includes('exame')
+  ).map(dateStr => new Date(dateStr));
+
+  const medicamentoEvents = Object.keys(eventDatesByType).filter(dateKey => 
+    eventDatesByType[dateKey].includes('medicamento')
+  ).map(dateStr => new Date(dateStr));
+
+  const terapiaEvents = Object.keys(eventDatesByType).filter(dateKey => 
+    eventDatesByType[dateKey].includes('terapia')
+  ).map(dateStr => new Date(dateStr));
 
   const canUserEditEvent = (event: AgendaEvent) => {
     return isAuthenticated && user && event.user_id === user.id;
@@ -256,14 +258,32 @@ const Agenda = () => {
                   locale={ptBR}
                   className="rounded-md border"
                   modifiers={{
-                    hasEvent: Object.keys(eventDatesByType).map(dateStr => new Date(dateStr))
+                    consulta: consultaEvents,
+                    exame: exameEvents,
+                    medicamento: medicamentoEvents,
+                    terapia: terapiaEvents
                   }}
                   modifiersStyles={{
-                    hasEvent: (date) => ({
-                      backgroundColor: `${getDayColor(date)}20`,
-                      color: getDayColor(date),
+                    consulta: {
+                      backgroundColor: 'rgb(59 130 246 / 0.2)',
+                      color: 'rgb(29 78 216)',
                       fontWeight: 'bold'
-                    })
+                    },
+                    exame: {
+                      backgroundColor: 'rgb(249 115 22 / 0.2)',
+                      color: 'rgb(194 65 12)',
+                      fontWeight: 'bold'
+                    },
+                    medicamento: {
+                      backgroundColor: 'rgb(34 197 94 / 0.2)',
+                      color: 'rgb(21 128 61)',
+                      fontWeight: 'bold'
+                    },
+                    terapia: {
+                      backgroundColor: 'rgb(168 85 247 / 0.2)',
+                      color: 'rgb(124 58 237)',
+                      fontWeight: 'bold'
+                    }
                   }}
                 />
               </CardContent>
@@ -544,3 +564,4 @@ const Agenda = () => {
 };
 
 export default Agenda;
+
