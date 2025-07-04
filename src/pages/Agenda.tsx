@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isAfter, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface AgendaEvent {
@@ -191,6 +189,18 @@ const Agenda = () => {
     return eventDateOnly.getTime() === selectedDateOnly.getTime();
   }) : [];
 
+  // Separar eventos futuros e passados
+  const today = startOfDay(new Date());
+  const upcomingEvents = isAuthenticated ? events.filter(event => {
+    const eventDateTime = new Date(event.date + 'T' + event.time);
+    return isAfter(eventDateTime, new Date());
+  }).slice(0, 5) : []; // Mostrar apenas os próximos 5
+
+  const pastEvents = isAuthenticated ? events.filter(event => {
+    const eventDateTime = new Date(event.date + 'T' + event.time);
+    return isBefore(eventDateTime, new Date());
+  }).slice(-5) : []; // Mostrar os últimos 5
+
   // Criar objetos de data com cores baseadas no tipo de evento
   const eventDatesByType = isAuthenticated ? events.reduce((acc, event) => {
     const eventDate = new Date(event.date + 'T00:00:00');
@@ -223,6 +233,95 @@ const Agenda = () => {
   const canUserEditEvent = (event: AgendaEvent) => {
     return isAuthenticated && user && event.user_id === user.id;
   };
+
+  const renderEventsList = (eventsList: AgendaEvent[], title: string) => (
+    <Card className="bg-white/80 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="w-5 h-5" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {!isAuthenticated ? (
+          <div className="text-center py-8">
+            <Lock className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">
+              Você precisa estar logado para ver seus compromissos
+            </p>
+          </div>
+        ) : eventsList.length > 0 ? (
+          <div className="space-y-4">
+            {eventsList.map((event) => {
+              const EventIcon = getEventIcon(event.type);
+              const canEdit = canUserEditEvent(event);
+              
+              return (
+                <Card key={event.id} className={`${getEventColor(event.type)} border-l-4`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                          <EventIcon className="w-5 h-5 text-gray-600" />
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900">{event.title}</h4>
+                            <Badge variant="secondary" className="capitalize text-xs">
+                              {getTypeLabel(event.type)}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                            <Clock className="w-4 h-4" />
+                            <span>{format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })} às {event.time}</span>
+                          </div>
+                          
+                          {event.description && (
+                            <p className="text-sm text-gray-600">
+                              {event.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {canEdit && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditEvent(event)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <CalendarDays className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">
+              Nenhum compromisso encontrado
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-trans-blue/10 via-white to-trans-pink/10 py-8">
@@ -313,18 +412,18 @@ const Agenda = () => {
                         }}
                       >
                         <Plus className="w-4 h-4 mr-2" />
-                        Novo Evento
+                        Novo Compromisso
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[500px]">
                       <DialogHeader>
                         <DialogTitle className="text-xl font-bold gradient-text">
-                          {editingEvent ? 'Editar Evento' : 'Criar Novo Evento'}
+                          {editingEvent ? 'Editar Compromisso' : 'Criar Novo Compromisso'}
                         </DialogTitle>
                       </DialogHeader>
                       <div className="grid gap-6 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="title">Título do Evento</Label>
+                          <Label htmlFor="title">Título do Compromisso</Label>
                           <Input 
                             id="title" 
                             placeholder="Ex: Consulta com Dr. Silva"
@@ -334,7 +433,7 @@ const Agenda = () => {
                         </div>
                         
                         <div className="space-y-2">
-                          <Label htmlFor="type">Tipo de Evento</Label>
+                          <Label htmlFor="type">Tipo de Compromisso</Label>
                           <Select value={newEvent.type} onValueChange={(value) => setNewEvent(prev => ({ ...prev, type: value }))}>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione o tipo" />
@@ -374,7 +473,7 @@ const Agenda = () => {
                           <Label htmlFor="description">Descrição (opcional)</Label>
                           <Textarea 
                             id="description" 
-                            placeholder="Adicione detalhes sobre o evento..."
+                            placeholder="Adicione detalhes sobre o compromisso..."
                             value={newEvent.description}
                             onChange={(e) => setNewEvent(prev => ({ ...prev, description: e.target.value }))}
                           />
@@ -389,7 +488,7 @@ const Agenda = () => {
                           className="bg-gradient-to-r from-trans-blue to-trans-pink text-white"
                           onClick={handleCreateEvent}
                         >
-                          {editingEvent ? 'Atualizar' : 'Criar'} Evento
+                          {editingEvent ? 'Atualizar' : 'Criar'} Compromisso
                         </Button>
                       </div>
                     </DialogContent>
@@ -398,7 +497,7 @@ const Agenda = () => {
                   <div className="text-center">
                     <Lock className="w-8 h-8 mx-auto text-gray-400 mb-3" />
                     <p className="text-sm text-gray-500 mb-4">
-                      Faça login para criar eventos
+                      Faça login para criar compromissos
                     </p>
                     <Button 
                       onClick={() => window.location.href = '/login'}
@@ -419,8 +518,8 @@ const Agenda = () => {
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
                   {isAuthenticated 
-                    ? `Eventos - ${selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}`
-                    : 'Faça login para ver seus eventos'
+                    ? `Compromissos - ${selectedDate ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione uma data'}`
+                    : 'Faça login para ver seus compromissos'
                   }
                 </CardTitle>
               </CardHeader>
@@ -429,7 +528,7 @@ const Agenda = () => {
                   <div className="text-center py-8">
                     <Lock className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                     <p className="text-gray-500">
-                      Você precisa estar logado para ver seus eventos
+                      Você precisa estar logado para ver seus compromissos
                     </p>
                   </div>
                 ) : selectedDateEvents.length > 0 ? (
@@ -497,7 +596,7 @@ const Agenda = () => {
                   <div className="text-center py-8">
                     <CalendarDays className="w-12 h-12 mx-auto text-gray-400 mb-4" />
                     <p className="text-gray-500">
-                      Nenhum evento para esta data
+                      Nenhum compromisso para esta data
                     </p>
                   </div>
                 )}
@@ -556,6 +655,16 @@ const Agenda = () => {
                 </Card>
               </div>
             )}
+
+            {/* Próximos Compromissos e Compromissos Passados */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <div>
+                {renderEventsList(upcomingEvents, "Próximos Compromissos")}
+              </div>
+              <div>
+                {renderEventsList(pastEvents, "Compromissos Passados")}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -564,4 +673,3 @@ const Agenda = () => {
 };
 
 export default Agenda;
-
