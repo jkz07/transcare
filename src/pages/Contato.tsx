@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,8 +52,8 @@ const Contato = () => {
       type: "Denúncia"
     },
     {
-      name: "ANTRA - Helpline Trans",
-      phone: "(11) 99999-9999",
+      name: "ANTRA - Associação Nacional de Travestis e Transexuais",
+      email: "contato@antrabrasil.org",
       description: "Suporte específico para pessoas trans",
       type: "Suporte"
     }
@@ -225,8 +224,17 @@ const Contato = () => {
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{contact.description}</p>
                       <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-red-600" />
-                        <span className="font-bold text-red-800">{contact.phone}</span>
+                        {contact.phone ? (
+                          <>
+                            <Phone className="w-4 h-4 text-red-600" />
+                            <span className="font-bold text-red-800">{contact.phone}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="w-4 h-4 text-red-600" />
+                            <span className="font-bold text-red-800">{contact.email}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
