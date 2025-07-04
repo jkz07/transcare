@@ -62,9 +62,9 @@ const Cadastro = () => {
     } else {
       toast({
         title: "Conta criada com sucesso!",
-        description: "Sua conta foi criada. Agora você pode fazer login para acessar sua jornada no TransCare.",
+        description: "Bem-vindo ao TransCare! Sua jornada começa agora.",
       });
-      navigate('/login');
+      navigate('/');
     }
     setIsLoading(false);
   };
