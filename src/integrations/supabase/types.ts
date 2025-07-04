@@ -50,6 +50,7 @@ export type Database = {
           journey_time: string | null
           location: string | null
           name: string
+          phone: string | null
           th_type: string | null
           updated_at: string | null
         }
@@ -60,6 +61,7 @@ export type Database = {
           journey_time?: string | null
           location?: string | null
           name: string
+          phone?: string | null
           th_type?: string | null
           updated_at?: string | null
         }
@@ -70,6 +72,7 @@ export type Database = {
           journey_time?: string | null
           location?: string | null
           name?: string
+          phone?: string | null
           th_type?: string | null
           updated_at?: string | null
         }
