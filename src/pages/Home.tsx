@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, Shield, Users, Calendar, ArrowRight, Play } from "lucide-react";
+import { Heart, Shield, Users, Calendar, ArrowRight, Play, ExternalLink } from "lucide-react";
 
 const Home = () => {
   const features = [
@@ -31,6 +31,10 @@ const Home = () => {
       color: "from-safe-green to-green-400"
     }
   ];
+
+  const handleVideoClick = () => {
+    window.open('https://drive.google.com/file/d/1pp42nWTHn54REgEnvZ-4YI9pm-zZ2FEE/view?usp=sharing', '_blank');
+  };
 
   return (
     <div className="min-h-screen">
@@ -102,31 +106,39 @@ const Home = () => {
           <div className="relative">
             <Card className="card-trans overflow-hidden">
               <CardContent className="p-0">
-                <div className="relative aspect-video bg-gradient-to-br from-trans-blue/20 to-trans-pink/20 overflow-hidden">
+                <div 
+                  className="relative aspect-video bg-gradient-to-br from-trans-blue/20 to-trans-pink/20 overflow-hidden cursor-pointer group"
+                  onClick={handleVideoClick}
+                >
                   {/* Custom Video Cover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-trans-blue/10 to-trans-pink/10">
                     <img 
                       src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
                       alt="Profissional da saúde em consultório"
-                      className="w-full h-full object-cover opacity-80"
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-90 transition-opacity duration-300"
                     />
                   </div>
                   
                   {/* Play Button Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-trans-blue to-trans-pink flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 cursor-pointer">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-all duration-300">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-r from-trans-blue to-trans-pink flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
                       <Play className="w-8 h-8 text-white ml-1" fill="white" />
                     </div>
                   </div>
                   
                   {/* Video Title Overlay */}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                    <h3 className="text-white text-xl font-semibold mb-2">
-                      Depoimento: Dr. Alex Silva
-                    </h3>
-                    <p className="text-white/80 text-sm">
-                      Endocrinologista especializado em terapia hormonal para pessoas trans
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white text-xl font-semibold mb-2">
+                          Depoimento: Dr. Alex Silva
+                        </h3>
+                        <p className="text-white/80 text-sm">
+                          Endocrinologista especializado em terapia hormonal para pessoas trans
+                        </p>
+                      </div>
+                      <ExternalLink className="w-5 h-5 text-white/80" />
+                    </div>
                   </div>
                 </div>
               </CardContent>
