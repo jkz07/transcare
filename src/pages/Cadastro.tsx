@@ -17,6 +17,7 @@ const Cadastro = () => {
     confirmPassword: '',
     birth_date: '',
     location: '',
+    phone: '',
     th_type: '',
     journey_time: ''
   });
@@ -50,6 +51,7 @@ const Cadastro = () => {
     const { error: registerError } = await register(formData.name, formData.email, formData.password, {
       birth_date: formData.birth_date,
       location: formData.location,
+      phone: formData.phone,
       th_type: formData.th_type,
       journey_time: formData.journey_time
     });
@@ -153,14 +155,25 @@ const Cadastro = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="location">Localização</Label>
+                    <Label htmlFor="phone">Telefone</Label>
                     <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange('location', e.target.value)}
-                      placeholder="ex: São Paulo, SP"
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="(11) 99999-9999"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Localização</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="ex: São Paulo, SP"
+                  />
                 </div>
               </div>
 

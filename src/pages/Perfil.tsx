@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +20,7 @@ const Perfil = () => {
     name: '',
     birth_date: '',
     location: '',
+    phone: '',
     th_type: '',
     journey_time: ''
   });
@@ -31,6 +31,7 @@ const Perfil = () => {
         name: profile.name || '',
         birth_date: profile.birth_date || '',
         location: profile.location || '',
+        phone: profile.phone || '',
         th_type: profile.th_type || '',
         journey_time: profile.journey_time || ''
       });
@@ -57,6 +58,7 @@ const Perfil = () => {
       name: formData.name,
       birth_date: formData.birth_date,
       location: formData.location,
+      phone: formData.phone,
       th_type: formData.th_type,
       journey_time: formData.journey_time
     });
@@ -156,6 +158,7 @@ const Perfil = () => {
                     <h1 className="text-3xl font-bold mb-2">{profile?.name || 'Usuário'}</h1>
                     <p className="text-gray-600 mb-2">
                       {age ? `${age} anos` : ''} {age && profile?.location && '•'} {profile?.location || ''}
+                      {profile?.phone && <><br /><span className="text-sm">📞 {profile.phone}</span></>}
                     </p>
                     <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
                       <Badge className="bg-trans-blue text-white">
@@ -244,6 +247,18 @@ const Perfil = () => {
                       value={formData.location}
                       onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
                       disabled={!isEditing} 
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input 
+                      id="phone" 
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={!isEditing}
+                      placeholder="(11) 99999-9999"
                     />
                   </div>
                 </div>
